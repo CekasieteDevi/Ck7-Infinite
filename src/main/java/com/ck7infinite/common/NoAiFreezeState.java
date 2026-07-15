@@ -21,8 +21,20 @@ public final class NoAiFreezeState {
         CompoundTag data = mob.getPersistentData();
         boolean frozenByUs = data.getBoolean(tagKey);
 
+        // Bug real encontrado y reproducido (reporte de usuario: "un animal que se congela una
+        // vez, nunca mas se descongela, ni parado al lado"): la version anterior de este metodo
+        // exigia !mob.isNoAi() ademas de !frozenByUs antes de congelar, para no pisar un NoAi que
+        // otra fuente hubiera puesto. Pero si el mob YA estaba NoAi=true por CUALQUIER motivo en
+        // el momento en que decidimos congelarlo (persistido de una sesion vieja con una build mas
+        // vieja de este mod, otro mod, un comando, lo que sea) esa guarda impedia para siempre que
+        // pusieramos NUESTRO tag -y sin el tag, la rama de abajo (frozenByUs) tampoco iba a poder
+        // descongelarlo nunca. El mob quedaba con NoAi=true de por vida, sin que ninguna
+        // evaluacion futura (por mas que el jugador se parara al lado) pudiera tocarlo. Ahora: si
+        // decidimos que el mob debe estar congelado y todavia no es nuestro, tomamos posesion
+        // (ponemos el tag) sin importar el NoAi previo -asi el ciclo freeze/unfreeze siempre queda
+        // bajo nuestro control y se puede revertir.
         if (shouldFreeze) {
-            if (!frozenByUs && !mob.isNoAi()) {
+            if (!frozenByUs) {
                 mob.setNoAi(true);
                 data.putBoolean(tagKey, true);
             }

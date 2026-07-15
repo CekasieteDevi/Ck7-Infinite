@@ -3,6 +3,8 @@ package com.ck7infinite.particlepriority.mixin;
 import com.ck7infinite.particlepriority.ParticleDecision;
 import com.ck7infinite.particlepriority.ParticlePriorityConfig;
 import com.ck7infinite.particlepriority.ParticlePriorityManager;
+import com.ck7infinite.ultraload.UltraLoadConfig;
+import com.ck7infinite.ultraload.UltraLoadState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.renderer.LevelRenderer;
@@ -41,6 +43,12 @@ public abstract class LevelRendererMixin {
             double x, double y, double z, double dx, double dy, double dz,
             CallbackInfoReturnable<Particle> cir
     ) {
+        // Ultra Carga: mientras esta activo, se descartan TODAS las particulas (incluso las
+        // forzadas), independientemente del modulo de prioridad, para liberar CPU/GPU al terreno.
+        if (UltraLoadConfig.isEnabled() && UltraLoadConfig.hideParticles() && UltraLoadState.isActive()) {
+            cir.setReturnValue(null);
+            return;
+        }
         if (!ParticlePriorityConfig.isEnabled() || overrideLimiter) {
             return;
         }

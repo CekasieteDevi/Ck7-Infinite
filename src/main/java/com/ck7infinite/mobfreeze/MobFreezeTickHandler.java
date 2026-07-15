@@ -1,5 +1,7 @@
 package com.ck7infinite.mobfreeze;
 
+import com.ck7infinite.ultraload.UltraLoadConfig;
+import com.ck7infinite.ultraload.UltraLoadState;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Mob;
@@ -52,6 +54,13 @@ public final class MobFreezeTickHandler {
         double alwaysActiveSq = alwaysActive * alwaysActive;
         boolean requireLos = MobFreezeConfig.requireLineOfSight();
         int graceTicks = MobFreezeConfig.spawnGraceTicks();
+        // Ultra Carga: mientras esta activo, fuerza el freeze de los mobs que esten FUERA del
+        // radio seguro (safeRadiusBlocks), sin mirar distancia normal ni linea de vision. Los que
+        // esten dentro del radio seguro (cerca tuyo) siguen sujetos SOLO a las reglas normales de
+        // arriba, para que un enemigo pegado a vos no desaparezca/se congele de golpe (el susto).
+        boolean ultraEnabled = UltraLoadConfig.isEnabled() && UltraLoadConfig.freezeAllMobs() && UltraLoadState.isActive();
+        double safeRadius = UltraLoadConfig.safeRadiusBlocks();
+        double safeRadiusSq = safeRadius * safeRadius;
 
         for (Map.Entry<ServerLevel, Set<Mob>> entry : MobFreezeTracker.trackedByLevel().entrySet()) {
             ServerLevel level = entry.getKey();
@@ -66,8 +75,9 @@ public final class MobFreezeTickHandler {
                 if (SpawnGraceTracker.isInGracePeriod(mob, level.getGameTime(), graceTicks)) {
                     continue;
                 }
+                boolean forceUltraFreeze = ultraEnabled && !isWithinRadiusOfAnyPlayer(level, mob, safeRadiusSq);
                 boolean hasPlayer = hasActivatingPlayer(level, mob, radiusSq, alwaysActiveSq, requireLos);
-                FreezeState.apply(mob, !hasPlayer);
+                FreezeState.apply(mob, forceUltraFreeze || !hasPlayer);
             }
         }
     }
@@ -78,6 +88,18 @@ public final class MobFreezeTickHandler {
                 FreezeState.apply(mob, false);
             }
         }
+    }
+
+    private static boolean isWithinRadiusOfAnyPlayer(ServerLevel level, Mob mob, double radiusSq) {
+        if (radiusSq <= 0.0) {
+            return false;
+        }
+        for (ServerPlayer player : level.players()) {
+            if (!player.isSpectator() && player.distanceToSqr(mob) <= radiusSq) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

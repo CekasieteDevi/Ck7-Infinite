@@ -5,6 +5,8 @@ import com.ck7infinite.mobfreeze.MobFreezeConfig;
 import com.ck7infinite.mobfreeze.MobFreezeTickHandler;
 import com.ck7infinite.mobfreeze.MobFreezeTracker;
 import com.ck7infinite.particlepriority.ParticlePriorityConfig;
+import com.ck7infinite.ultraload.UltraLoadConfig;
+import com.ck7infinite.ultraload.UltraLoadServerHandler;
 import com.ck7infinite.villagerthrottle.VillagerInteractHandler;
 import com.ck7infinite.villagerthrottle.VillagerThrottleConfig;
 import com.ck7infinite.villagerthrottle.VillagerThrottleTickHandler;
@@ -54,5 +56,11 @@ public class Ck7Infinite {
         // ejecuta en el cliente fisico; no hace falta un gate de Dist explicito ademas del que ya
         // provee el mixins.json (array "client").
         context.registerConfig(ModConfig.Type.CLIENT, DynamicResConfig.SPEC, MODID + "-dynamicres.toml");
+
+        // Modulo 6: Ultra Carga (modo panico durante carga de chunks). Config COMMON. El detector
+        // y los efectos de servidor van en el handler; los de cliente (render de entidades) se
+        // registran solo en cliente via UltraLoadClientSetup, y el de particulas via su mixin.
+        context.registerConfig(ModConfig.Type.COMMON, UltraLoadConfig.SPEC, MODID + "-ultraload.toml");
+        MinecraftForge.EVENT_BUS.register(new UltraLoadServerHandler());
     }
 }

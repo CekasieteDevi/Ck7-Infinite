@@ -9,6 +9,9 @@ issueTrackerURL="https://github.com/CekasieteDevi/ck7-infinite/issues" #optional
 [[mixins]]
     config="ck7infinite-dynamicres.mixins.json"
 
+[[mixins]]
+    config="ck7infinite-ultraload.mixins.json"
+
 [[mods]] #mandatory
 modId="${mod_id}" #mandatory
 version="${mod_version}" #mandatory

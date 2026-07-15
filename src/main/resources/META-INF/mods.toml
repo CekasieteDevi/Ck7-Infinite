@@ -32,3 +32,13 @@ description='''${mod_description}'''
     versionRange="${minecraft_version_range}"
     ordering="NONE"
     side="BOTH"
+
+# Cloth Config: opcional. Si esta presente, habilita la pantalla de configuracion in-game
+# (Mods -> Ck7 - Conatus -> Config). Si no esta, el mod funciona igual, solo sin esa GUI
+# (se configura por los .toml en config/).
+[[dependencies.${mod_id}]]
+    modId="cloth_config"
+    mandatory=false
+    versionRange="[11,)"
+    ordering="AFTER"
+    side="CLIENT"

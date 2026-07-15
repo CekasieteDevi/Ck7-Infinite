@@ -12,11 +12,14 @@ import com.ck7infinite.villagerthrottle.VillagerThrottleConfig;
 import com.ck7infinite.villagerthrottle.VillagerThrottleTickHandler;
 import com.ck7infinite.villagerthrottle.VillagerThrottleTracker;
 import com.mojang.logging.LogUtils;
+import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.fml.loading.FMLEnvironment;
 import org.slf4j.Logger;
 
 @Mod(Ck7Infinite.MODID)
@@ -62,5 +65,13 @@ public class Ck7Infinite {
         // registran solo en cliente via UltraLoadClientSetup, y el de particulas via su mixin.
         context.registerConfig(ModConfig.Type.COMMON, UltraLoadConfig.SPEC, MODID + "-ultraload.toml");
         MinecraftForge.EVENT_BUS.register(new UltraLoadServerHandler());
+
+        // Pantalla de configuracion in-game (Mods -> Ck7 - Conatus -> Config), solo en el cliente
+        // fisico y solo si Cloth Config esta presente. La clase Ck7ConfigScreen importa Cloth
+        // Config y clases de cliente, asi que solo se carga cuando ambos gates se cumplen (si no
+        // esta Cloth Config, nunca se referencia -> el mod carga igual, sin GUI).
+        if (FMLEnvironment.dist == Dist.CLIENT && ModList.get().isLoaded("cloth_config")) {
+            com.ck7infinite.config.Ck7ConfigScreen.register();
+        }
     }
 }

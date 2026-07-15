@@ -1,6 +1,5 @@
 package com.ck7infinite;
 
-import com.ck7infinite.dynamicres.DynamicResConfig;
 import com.ck7infinite.mobfreeze.MobFreezeConfig;
 import com.ck7infinite.mobfreeze.MobFreezeTickHandler;
 import com.ck7infinite.mobfreeze.MobFreezeTracker;
@@ -53,12 +52,6 @@ public class Ck7Infinite {
         // (ver ParticlePriorityClientSetup); esta linea es segura en dedicated server porque
         // ParticlePriorityConfig no referencia ninguna clase de net.minecraft.client.
         context.registerConfig(ModConfig.Type.CLIENT, ParticlePriorityConfig.SPEC, MODID + "-particlepriority.toml");
-
-        // Modulo 4: Resolucion de Render Dinamica. Config CLIENT. El mixin (GameRendererMixin) y
-        // RenderScaleManager solo se tocan durante GameRenderer#renderLevel, que unicamente se
-        // ejecuta en el cliente fisico; no hace falta un gate de Dist explicito ademas del que ya
-        // provee el mixins.json (array "client").
-        context.registerConfig(ModConfig.Type.CLIENT, DynamicResConfig.SPEC, MODID + "-dynamicres.toml");
 
         // Modulo 6: Ultra Carga (modo panico durante carga de chunks). Config COMMON. El detector
         // y los efectos de servidor van en el handler; los de cliente (render de entidades) se

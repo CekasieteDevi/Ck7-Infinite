@@ -7,9 +7,6 @@ issueTrackerURL="https://github.com/CekasieteDevi/ck7-infinite/issues" #optional
     config="ck7infinite-particlepriority.mixins.json"
 
 [[mixins]]
-    config="ck7infinite-dynamicres.mixins.json"
-
-[[mixins]]
     config="ck7infinite-ultraload.mixins.json"
 
 [[mods]] #mandatory

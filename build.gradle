@@ -139,6 +139,15 @@ repositories {
     //     dir 'libs'
     // }
 
+    // Maven de Modrinth, para dependencias de runtime de desarrollo (spark profiler).
+    maven {
+        name = 'Modrinth'
+        url = 'https://api.modrinth.com/maven'
+        content {
+            includeGroup 'maven.modrinth'
+        }
+    }
+
     // Maven de shedaniel, para Cloth Config (GUI de configuracion in-game).
     maven {
         name = 'shedaniel'
@@ -156,10 +165,20 @@ dependencies {
 
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 
+    // spark: profiler en runtime de desarrollo para diagnosticar picos de lag (/spark profiler,
+    // /spark tps, /spark gc). Solo runtimeOnly: no es dependencia del mod publicado.
+    runtimeOnly fg.deobf("maven.modrinth:spark:1.10.53-forge")
+
     // Cloth Config: framework de GUI para la pantalla de configuracion in-game. Compila y corre
     // en dev; en produccion el pack debe traer el mod Cloth Config (dependencia opcional en
     // mods.toml, la registracion de la pantalla se saltea con gracia si no esta presente).
     implementation fg.deobf("me.shedaniel.cloth:cloth-config-forge:11.1.136")
+
+    // FPS Overlay + su dependencia YACL: overlay de FPS/1% lows/ping/TPS/MSPT en pantalla, para
+    // medir rendimiento sin abrir F3. Solo runtimeOnly: son mods de terceros para probar en dev,
+    // no dependencias del mod publicado.
+    runtimeOnly fg.deobf("maven.modrinth:yacl:3.6.6+1.20.1-forge")
+    runtimeOnly fg.deobf("maven.modrinth:fps-overlay:5.2+forge")
 
     // Example mod dependency with JEI - using fg.deobf() ensures the dependency is remapped to your development mappings
     // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime

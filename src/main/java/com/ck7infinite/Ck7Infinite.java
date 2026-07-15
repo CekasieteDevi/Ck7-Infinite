@@ -26,14 +26,19 @@ public class Ck7Infinite {
     public Ck7Infinite(FMLJavaModLoadingContext context) {
         IEventBus modEventBus = context.getModEventBus();
 
-        // Modulo 1: Mob AI Freeze. Cada modulo registra su propio archivo de config
-        // server-side para que puedan activarse/editarse de forma independiente.
-        context.registerConfig(ModConfig.Type.SERVER, MobFreezeConfig.SPEC, MODID + "-mobfreeze.toml");
+        // Interruptor general: un solo toggle que desactiva TODO el mod. Config COMMON, se
+        // registra primero para que este disponible antes que los modulos individuales lo lean.
+        context.registerConfig(ModConfig.Type.COMMON, Ck7MasterConfig.SPEC, MODID + "-general.toml");
+
+        // Modulo 1: Mob AI Freeze. Config COMMON (global en config/, no per-world): asi es
+        // editable desde el menu principal via la pantalla de Cloth Config, y la logica corre
+        // igual en el logical server. Cada modulo tiene su propio archivo para editarlos aparte.
+        context.registerConfig(ModConfig.Type.COMMON, MobFreezeConfig.SPEC, MODID + "-mobfreeze.toml");
         MinecraftForge.EVENT_BUS.register(new MobFreezeTracker());
         MinecraftForge.EVENT_BUS.register(new MobFreezeTickHandler());
 
-        // Modulo 2: Villager Throttling.
-        context.registerConfig(ModConfig.Type.SERVER, VillagerThrottleConfig.SPEC, MODID + "-villagerthrottle.toml");
+        // Modulo 2: Villager Throttling. Config COMMON (misma razon que Mob Freeze).
+        context.registerConfig(ModConfig.Type.COMMON, VillagerThrottleConfig.SPEC, MODID + "-villagerthrottle.toml");
         MinecraftForge.EVENT_BUS.register(new VillagerThrottleTracker());
         MinecraftForge.EVENT_BUS.register(new VillagerThrottleTickHandler());
         MinecraftForge.EVENT_BUS.register(new VillagerInteractHandler());

@@ -1,5 +1,6 @@
 package com.ck7infinite.villagerthrottle;
 
+import com.ck7infinite.Ck7MasterConfig;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -14,13 +15,13 @@ import static com.ck7infinite.Ck7Infinite.MODID;
 @Mod.EventBusSubscriber(modid = MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public final class VillagerThrottleConfig {
 
-    private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
+    public static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
 
-    private static final ForgeConfigSpec.BooleanValue ENABLED = BUILDER
+    public static final ForgeConfigSpec.BooleanValue ENABLED = BUILDER
             .comment("Activa o desactiva por completo el modulo de Villager Throttling.")
             .define("enabled", true);
 
-    private static final ForgeConfigSpec.DoubleValue THROTTLE_RADIUS = BUILDER
+    public static final ForgeConfigSpec.DoubleValue THROTTLE_RADIUS = BUILDER
             .comment(
                     "Radio (en bloques) alrededor de cada jugador dentro del cual los aldeanos",
                     "mantienen su IA activa (pathfinding, lookup de trading/POI, brain). Fuera de",
@@ -28,18 +29,18 @@ public final class VillagerThrottleConfig {
             )
             .defineInRange("throttleRadiusBlocks", 32.0, 4.0, 512.0);
 
-    private static final ForgeConfigSpec.IntValue EVALUATION_INTERVAL_TICKS = BUILDER
+    public static final ForgeConfigSpec.IntValue EVALUATION_INTERVAL_TICKS = BUILDER
             .comment(
                     "Cada cuantos ticks se reevalua la distancia jugador-aldeano para cada aldeano rastreado.",
                     "Valores mas altos = menos overhead pero reaccion mas lenta al freeze/unfreeze."
             )
             .defineInRange("evaluationIntervalTicks", 10, 1, 200);
 
-    private static final ForgeConfigSpec.BooleanValue INCLUDE_WANDERING_TRADER = BUILDER
+    public static final ForgeConfigSpec.BooleanValue INCLUDE_WANDERING_TRADER = BUILDER
             .comment("Si es true, tambien gestiona Wandering Traders ademas de Villagers normales.")
             .define("includeWanderingTrader", false);
 
-    private static final ForgeConfigSpec.BooleanValue UNFREEZE_ON_INTERACT = BUILDER
+    public static final ForgeConfigSpec.BooleanValue UNFREEZE_ON_INTERACT = BUILDER
             .comment(
                     "Si es true, un aldeano se descongela de inmediato cuando un jugador lo interactua",
                     "(click derecho), incluso si sigue fuera del radio, para que el trading/restock",
@@ -63,6 +64,16 @@ public final class VillagerThrottleConfig {
         if (event.getConfig().getSpec() != SPEC) {
             return;
         }
+        refresh();
+    }
+
+    /**
+     * Recarga los campos cacheados desde el SPEC. ForgeConfigSpec#save() solo escribe el archivo:
+     * no dispara ModConfigEvent.Reloading (eso depende de un file watcher asincrono poco confiable
+     * en Windows para el guardado atomico). La pantalla de Cloth Config llama esto explicitamente
+     * despues de guardar, para que los toggles tengan efecto inmediato.
+     */
+    public static void refresh() {
         enabled = ENABLED.get();
         throttleRadiusBlocks = THROTTLE_RADIUS.get();
         evaluationIntervalTicks = EVALUATION_INTERVAL_TICKS.get();
@@ -71,7 +82,7 @@ public final class VillagerThrottleConfig {
     }
 
     public static boolean isEnabled() {
-        return enabled;
+        return enabled && Ck7MasterConfig.isEnabled();
     }
 
     public static double throttleRadiusBlocks() {

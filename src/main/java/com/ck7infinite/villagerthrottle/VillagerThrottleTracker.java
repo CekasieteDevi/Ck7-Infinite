@@ -29,6 +29,12 @@ public final class VillagerThrottleTracker {
             return;
         }
         if (!VillagerEligibility.isEligible(mob)) {
+            // Modulo apagado (o ya no incluye Wandering Trader, etc.): si quedo congelado por
+            // nosotros de una sesion anterior, descongelarlo aca para que no quede con NoAI=true
+            // para siempre (nunca vuelve a entrar al tracking para reevaluarse).
+            if (VillagerFreeze.isFrozenByUs(mob)) {
+                VillagerFreeze.apply(mob, false);
+            }
             return;
         }
         ServerLevel level = (ServerLevel) event.getLevel();

@@ -1,5 +1,6 @@
 package com.ck7infinite.particlepriority;
 
+import com.ck7infinite.Ck7MasterConfig;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -21,25 +22,25 @@ import static com.ck7infinite.Ck7Infinite.MODID;
 @Mod.EventBusSubscriber(modid = MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public final class ParticlePriorityConfig {
 
-    private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
+    public static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
 
-    private static final ForgeConfigSpec.BooleanValue ENABLED = BUILDER
+    public static final ForgeConfigSpec.BooleanValue ENABLED = BUILDER
             .comment("Activa o desactiva por completo el modulo de Particulas por Prioridad.")
             .define("enabled", true);
 
-    private static final ForgeConfigSpec.DoubleValue COMBAT_RADIUS = BUILDER
+    public static final ForgeConfigSpec.DoubleValue COMBAT_RADIUS = BUILDER
             .comment("Radio (bloques) dentro del cual las particulas de combate se muestran siempre.")
             .defineInRange("combatRadiusBlocks", 48.0, 4.0, 256.0);
 
-    private static final ForgeConfigSpec.DoubleValue INTERACTION_RADIUS = BUILDER
+    public static final ForgeConfigSpec.DoubleValue INTERACTION_RADIUS = BUILDER
             .comment("Radio (bloques) dentro del cual las particulas de interaccion/crafteo se muestran siempre.")
             .defineInRange("interactionRadiusBlocks", 24.0, 4.0, 256.0);
 
-    private static final ForgeConfigSpec.DoubleValue REDSTONE_RADIUS = BUILDER
+    public static final ForgeConfigSpec.DoubleValue REDSTONE_RADIUS = BUILDER
             .comment("Radio (bloques) dentro del cual las particulas de redstone se muestran siempre.")
             .defineInRange("redstoneRadiusBlocks", 24.0, 4.0, 256.0);
 
-    private static final ForgeConfigSpec.DoubleValue AMBIENT_RADIUS = BUILDER
+    public static final ForgeConfigSpec.DoubleValue AMBIENT_RADIUS = BUILDER
             .comment(
                     "Radio (bloques) dentro del cual las particulas ambientales (lluvia, goteo,",
                     "esporas, portal, etc.) se muestran a tasa completa. Mas alla de este radio",
@@ -47,7 +48,7 @@ public final class ParticlePriorityConfig {
             )
             .defineInRange("ambientRadiusBlocks", 16.0, 2.0, 128.0);
 
-    private static final ForgeConfigSpec.DoubleValue AMBIENT_CLOSE_RADIUS = BUILDER
+    public static final ForgeConfigSpec.DoubleValue AMBIENT_CLOSE_RADIUS = BUILDER
             .comment(
                     "Radio (bloques) muy cercano al jugador donde las particulas ambientales se",
                     "muestran igual aunque esten fuera del cono de vision (evita que algo pegado",
@@ -55,7 +56,7 @@ public final class ParticlePriorityConfig {
             )
             .defineInRange("ambientCloseRadiusBlocks", 8.0, 1.0, 64.0);
 
-    private static final ForgeConfigSpec.DoubleValue VIEW_CONE_DOT_THRESHOLD = BUILDER
+    public static final ForgeConfigSpec.DoubleValue VIEW_CONE_DOT_THRESHOLD = BUILDER
             .comment(
                     "Umbral del producto punto entre la direccion de camara y el vector hacia la",
                     "particula. 0.0 = cono de 180 grados (todo el hemisferio delantero). Valores",
@@ -63,18 +64,18 @@ public final class ParticlePriorityConfig {
             )
             .defineInRange("viewConeDotThreshold", 0.0, -1.0, 1.0);
 
-    private static final ForgeConfigSpec.DoubleValue CONTEXT_RADIUS = BUILDER
+    public static final ForgeConfigSpec.DoubleValue CONTEXT_RADIUS = BUILDER
             .comment(
                     "Radio (bloques) alrededor de la ultima accion del jugador (romper/colocar/usar",
                     "bloque, atacar) dentro del cual las particulas se tratan como maxima prioridad."
             )
             .defineInRange("contextRadiusBlocks", 6.0, 1.0, 64.0);
 
-    private static final ForgeConfigSpec.IntValue CONTEXT_RECENCY_TICKS = BUILDER
+    public static final ForgeConfigSpec.IntValue CONTEXT_RECENCY_TICKS = BUILDER
             .comment("Cuantos ticks despues de una accion del jugador sigue aplicando el bonus de contexto.")
             .defineInRange("contextRecencyTicks", 40, 0, 1200);
 
-    private static final ForgeConfigSpec.ConfigValue<List<? extends String>> COMBAT_PARTICLE_IDS = BUILDER
+    public static final ForgeConfigSpec.ConfigValue<List<? extends String>> COMBAT_PARTICLE_IDS = BUILDER
             .comment("IDs (path, sin namespace) de ParticleType clasificados como combate.")
             .defineListAllowEmpty(
                     "combatParticleIds",
@@ -82,7 +83,7 @@ public final class ParticlePriorityConfig {
                     obj -> obj instanceof String
             );
 
-    private static final ForgeConfigSpec.ConfigValue<List<? extends String>> INTERACTION_PARTICLE_IDS = BUILDER
+    public static final ForgeConfigSpec.ConfigValue<List<? extends String>> INTERACTION_PARTICLE_IDS = BUILDER
             .comment("IDs (path, sin namespace) de ParticleType clasificados como interaccion/crafteo.")
             .defineListAllowEmpty(
                     "interactionParticleIds",
@@ -90,7 +91,7 @@ public final class ParticlePriorityConfig {
                     obj -> obj instanceof String
             );
 
-    private static final ForgeConfigSpec.ConfigValue<List<? extends String>> REDSTONE_PARTICLE_IDS = BUILDER
+    public static final ForgeConfigSpec.ConfigValue<List<? extends String>> REDSTONE_PARTICLE_IDS = BUILDER
             .comment("IDs (path, sin namespace) de ParticleType clasificados como redstone.")
             .defineListAllowEmpty(
                     "redstoneParticleIds",
@@ -121,6 +122,16 @@ public final class ParticlePriorityConfig {
         if (event.getConfig().getSpec() != SPEC) {
             return;
         }
+        refresh();
+    }
+
+    /**
+     * Recarga los campos cacheados desde el SPEC. ForgeConfigSpec#save() solo escribe el archivo:
+     * no dispara ModConfigEvent.Reloading (eso depende de un file watcher asincrono poco confiable
+     * en Windows para el guardado atomico). La pantalla de Cloth Config llama esto explicitamente
+     * despues de guardar, para que los toggles tengan efecto inmediato.
+     */
+    public static void refresh() {
         enabled = ENABLED.get();
         combatRadiusBlocks = COMBAT_RADIUS.get();
         interactionRadiusBlocks = INTERACTION_RADIUS.get();
@@ -137,7 +148,7 @@ public final class ParticlePriorityConfig {
     }
 
     public static boolean isEnabled() {
-        return enabled;
+        return enabled && Ck7MasterConfig.isEnabled();
     }
 
     public static double combatRadiusBlocks() {

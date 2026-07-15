@@ -20,4 +20,8 @@ final class FreezeState {
     static void clear(Mob mob) {
         NoAiFreezeState.clear(mob, TAG_KEY);
     }
+
+    static boolean isFrozenByUs(Mob mob) {
+        return NoAiFreezeState.isFrozenByUs(mob, TAG_KEY);
+    }
 }

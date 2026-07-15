@@ -30,6 +30,13 @@ public final class MobFreezeTracker {
             return;
         }
         if (!EntityFreezeClassifier.isEligible(mob)) {
+            // Modulo apagado o el mob ahora es inelegible (blacklist/whitelist cambio, etc.): si
+            // quedo congelado por nosotros de una sesion anterior (persistido en su NBT), hay que
+            // descongelarlo aca. Si no, como nunca vuelve a entrar al tracking, quedaria con
+            // NoAI=true para siempre (el bug de "el caballo no se mueve/no se puede domar").
+            if (FreezeState.isFrozenByUs(mob)) {
+                FreezeState.apply(mob, false);
+            }
             return;
         }
         ServerLevel level = (ServerLevel) event.getLevel();

@@ -20,12 +20,23 @@ import java.util.Set;
 public final class VillagerThrottleTickHandler {
 
     private int tickCounter;
+    private boolean wasEnabled = true;
 
     @SubscribeEvent
     public void onServerTick(TickEvent.ServerTickEvent event) {
-        if (event.phase != TickEvent.Phase.END || !VillagerThrottleConfig.isEnabled()) {
+        if (event.phase != TickEvent.Phase.END) {
             return;
         }
+        if (!VillagerThrottleConfig.isEnabled()) {
+            // Igual que en Mob AI Freeze: si solo dejamos de evaluar, un aldeano que haya
+            // quedado con NoAI=true nunca se toca de nuevo y queda roto para siempre.
+            if (wasEnabled) {
+                forceUnfreezeAllTracked();
+                wasEnabled = false;
+            }
+            return;
+        }
+        wasEnabled = true;
 
         int interval = VillagerThrottleConfig.evaluationIntervalTicks();
         if (++tickCounter < interval) {
@@ -47,6 +58,14 @@ public final class VillagerThrottleTickHandler {
                 }
                 Player nearest = level.getNearestPlayer(mob, radius);
                 VillagerFreeze.apply(mob, nearest == null);
+            }
+        }
+    }
+
+    private static void forceUnfreezeAllTracked() {
+        for (Set<Mob> mobs : VillagerThrottleTracker.trackedByLevel().values()) {
+            for (Mob mob : mobs) {
+                VillagerFreeze.apply(mob, false);
             }
         }
     }

@@ -66,6 +66,12 @@ public class Ck7Infinite {
         context.registerConfig(ModConfig.Type.COMMON, UltraLoadConfig.SPEC, MODID + "-ultraload.toml");
         MinecraftForge.EVENT_BUS.register(new UltraLoadServerHandler());
 
+        // Aviso de Sodium/Embeddium: config CLIENT minima (solo guarda "no volver a mostrar").
+        // El handler que muestra la pantalla se registra aparte, solo en cliente, via
+        // SodiumWarningClientSetup (@EventBusSubscriber con Dist.CLIENT).
+        context.registerConfig(ModConfig.Type.CLIENT, com.ck7infinite.sodiumwarning.SodiumWarningConfig.SPEC,
+                MODID + "-sodiumwarning.toml");
+
         // Pantalla de configuracion in-game (Mods -> Ck7 - Conatus -> Config), solo en el cliente
         // fisico y solo si Cloth Config esta presente. La clase Ck7ConfigScreen importa Cloth
         // Config y clases de cliente, asi que solo se carga cuando ambos gates se cumplen (si no

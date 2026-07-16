@@ -113,10 +113,9 @@
   "ck7infinite.config.resscale.enabled": "Ativado",
   "ck7infinite.config.resscale.enabled.tooltip": "Renderiza o mundo 3D em resolucao reduzida e estica para tela cheia.\nDesativado por padrao: modulo novo, ative somente apos testar na sua\nconfiguracao real.",
   "ck7infinite.config.resscale.scale": "Escala",
-  "ck7infinite.config.resscale.scale.tooltip": "1.0 = resolucao nativa (sem efeito). Abaixo de 1.0 = mais pixelado, melhor\ndesempenho. Acima de 1.0 = mais nitido (supersampling), pior desempenho.\nUma mudanca de valor so tem efeito ao entrar num mundo, ou desligando e\nligando de novo o 'Ativado' acima -mudar com o modulo ligado nao tem\nefeito ate um desses dois.",
+  "ck7infinite.config.resscale.scale.tooltip": "1.0 = resolucao nativa (sem efeito). Abaixo de 1.0 = mais pixelado, melhor\ndesempenho. Acima de 1.0 = mais nitido (supersampling), pior desempenho.\nAplica na hora ao salvar, sem precisar reiniciar nem reentrar no mundo.",
   "ck7infinite.config.resscale.linear_filter": "Filtro linear ao esticar",
   "ck7infinite.config.resscale.linear_filter.tooltip": "Ativado = suave (estilo FXAA leve). Desativado = vizinho mais proximo\n(mais nitido/pixelado).",
-  "ck7infinite.config.resscale.pending_restart": "[Ck7 - Conatus] Voce salvou uma mudanca de Escala, mas ainda nao foi aplicada: desligue e ligue 'Ativado' na categoria Escala de Resolucion, ou saia e volte a entrar no mundo.",
 
   "ck7infinite.sodiumwarning.chat": "[Ck7 - Conatus] Detectamos Sodium ou Embeddium: em placas de video integradas a opcao 'Use Fog Occlusion' pode falhar (chunks nao desenhados ate voce andar em cima). Recomendamos desativa-la: Opcoes > Video > aba Embeddium/Sodium > Performance > Use Fog Occlusion. (Voce pode desativar este aviso em Mods > Ck7 - Conatus > Config)."
 }

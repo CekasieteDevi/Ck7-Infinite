@@ -19,62 +19,47 @@ import org.lwjgl.opengl.GL45;
  * GameRenderer#renderLevel via MinecraftAccessorMixin, y bliteado (estirado) contra la ventana
  * real al terminar.
  * <p>
- * A proposito NO hay ningun controlador que recalcule la escala cuadro a cuadro: el valor sale
- * directo de {@link ResScaleConfig#scale()}. Una version anterior con ajuste automatico por FPS SI
- * recreaba el framebuffer repetidamente durante el juego y corrompia el frame (geometria rota,
- * confirmado con un self-test coincidiendo con un resize + un stall); sacar el controlador
- * dinamico saca esa fuente de resizes en vivo.
+ * A proposito NO hay ningun controlador que recalcule la escala con ajuste automatico por FPS
+ * (una version anterior si lo tenia y recreaba el framebuffer repetidamente durante el juego,
+ * corrompiendo el frame -geometria rota, confirmado con un self-test coincidiendo con un resize +
+ * un stall). Pero el VALOR de {@link ResScaleConfig#scale()} SI se relee todos los frames y se
+ * aplica de inmediato si cambio -ver mas abajo por que esto es seguro ahora y no lo era antes.
  * <p>
- * <b>La escala se "commitea" (queda fija) al crear el framebuffer por primera vez en una sesion de
- * mundo, y NO se vuelve a tocar hasta salir del mundo</b> -aunque el usuario cambie el valor en la
- * config mientras juega, ese cambio recien se aplica la proxima vez que entra a un mundo. Esto no
- * es una limitacion arbitraria: se probo activamente permitir el cambio en caliente (recrear el
- * MainTarget con el nuevo tamaño en el momento) y se confirmo en vivo, en las dos direcciones
- * (achicar y agrandar), que deja el frame roto -geometria/agua desplazada- de forma consistente,
- * mientras que CUALQUIER arranque fresco a cualquier escala (incluida una sesion nueva tras salir
- * y volver a entrar) siempre funciono limpio en todas las pruebas. La causa exacta del cambio en
- * caliente no se aislo del todo (se descarto que fuera solo el resize() heredado de RenderTarget,
- * ver commit history); en vez de seguir cazandola, se opto por la garantia estructural: la unica
- * forma soportada de aplicar un cambio de escala es una construccion fresca. Dos disparadores
- * cuentan como "construccion fresca": salir del mundo ({@link #resetSession()}, via
- * ClientPlayerNetworkEvent.LoggingOut) y apagar+prender el toggle general del modulo SIN salir del
- * mundo (deteccion de transicion en {@link #beginWorldPass()}) -este segundo disparador se agrego
- * porque, sin el, apagar/prender el modulo parecia "no hacer nada" igual que cambiar la escala
- * sola, lo cual confundia sobre cual era el mecanismo real para aplicar un cambio.
- * <p>
- * <b>Causa raiz real encontrada (investigacion con Fable 5, verificada por bytecode) del bug de
- * agua/entidades desplazadas que sobrevivio a todos los fixes anteriores</b>:
+ * <b>Causa raiz real (investigacion con Fable 5, verificada por bytecode) del bug de agua/
+ * entidades desplazadas que hacia que cualquier cambio de escala en caliente rompiera el frame</b>:
  * {@code LevelRenderer#renderLevel} hace, TODOS los frames (con o sin mobs glowing),
  * {@code entityTarget.clear()} (deja el viewport GL en las dimensiones de {@code entityTarget})
  * seguido de {@code mainRenderTarget.bindWrite(false)} (que NO restaura el viewport), justo
  * ANTES de dibujar entidades, agua (translucent), particulas, nubes y clima -vanilla asume que
  * {@code entityTarget} siempre tiene el MISMO tamaño que el main target activo. Nuestro swap
- * cambia el tamaño del main target activo pero nunca redimensionaba {@code entityTarget}: ese
- * chain (el post-chain del entity outline/glowing) solo se resincroniza cuando VANILLA llama a
- * {@code PostChain.resize} (resize real de ventana/F11/cambio de GUI scale), asi que en cuanto
- * la escala cambiaba sin que pasara eso, el viewport de toda la segunda mitad del frame quedaba
- * desincronizado -exactamente el patron reportado (terreno bien, agua/entidades siempre mal,
- * "esquinado" en una direccion o slabs/bandas diagonales en la otra segun cual de los dos targets
- * quedara mas grande). Por eso los self-tests en la ventana de dev SIEMPRE salian limpios: la
- * ventana recibe eventos de resize/foco que casualmente reparan el invariante, algo que la sesion
- * real del usuario (cambia la escala, nunca toca la ventana) nunca dispara. Fix: sincronizar
- * {@code entityTarget} a mano, cada frame (comparacion de enteros, gratis), en
- * {@link #syncOutlineChain}.
+ * cambia el tamaño del main target activo; si nada mas redimensiona {@code entityTarget} para que
+ * coincida, el viewport de toda la segunda mitad del frame queda desincronizado -exactamente el
+ * patron reportado (terreno bien, agua/entidades siempre mal, "esquinado" en una direccion o
+ * slabs/bandas diagonales en la otra segun cual de los dos targets quedara mas grande). Antes de
+ * este fix, la unica forma en que {@code entityTarget} se resincronizaba era que VANILLA llamara a
+ * {@code PostChain.resize} (resize real de ventana/F11/cambio de GUI scale) -algo que la ventana
+ * de dev dispara por accidente (eventos de resize/foco) pero una sesion real que solo cambia la
+ * escala desde la GUI nunca. Por eso durante un tiempo se penso que "cambiar la escala en vivo"
+ * era estructuralmente inseguro y se opto por exigir salir del mundo o apagar/prender el modulo
+ * para aplicar un cambio -perooo la causa real no era el cambio en si, era que nada resincronizaba
+ * {@code entityTarget}. Con {@link #syncOutlineChain} corrigiendo eso EN CADA FRAME (no solo en
+ * una transicion puntual), leer la escala en vivo cada frame volvio a ser seguro: si cambia, el
+ * bloque de abajo recrea {@code scaledTarget} al nuevo tamaño Y {@code syncOutlineChain} lo nota y
+ * repara {@code entityTarget} en el MISMO frame, sin ventana de inconsistencia.
  */
 public final class ResScaleManager {
 
     private static MainTarget scaledTarget;
     private static RenderTarget realTarget;
     private static boolean worldPassActive = false;
-    private static double committedScale = 1.0;
-    private static boolean wasEnabled = false;
     private static boolean lodBiasApplied = false;
+    private static double lastBiasScale = Double.NaN;
 
     /**
-     * Escala EFECTIVA del world pass de este frame: committedScale cuando el swap esta activo,
+     * Escala EFECTIVA del world pass de este frame: el valor de config cuando el swap esta activo,
      * 1.0 en cualquier bypass (modulo apagado, escala 1.0, shaderpack/Fabuloso). Es lo que
-     * PostChainMixin/syncOutlineChain deben usar -el chain del outline tiene que seguir el
-     * tamaño REAL del pass, no el valor crudo de la config.
+     * WindowMixin/PostChainMixin/syncOutlineChain deben usar -el chain del outline y el tamaño de
+     * ventana reportado tienen que seguir el tamaño REAL del pass de este frame.
      */
     private static double activeScale = 1.0;
 
@@ -84,31 +69,16 @@ public final class ResScaleManager {
     public static void beginWorldPass() {
         worldPassActive = false;
         Minecraft mc = Minecraft.getInstance();
-        boolean enabled = ResScaleConfig.isEnabled();
-        if (!enabled) {
-            wasEnabled = false;
+        if (!ResScaleConfig.isEnabled()) {
             resetLodBias();
             activeScale = 1.0;
             syncOutlineChain(mc);
             return;
         }
-        if (!wasEnabled) {
-            // Transicion apagado->prendido (el toggle general de la GUI, no solo salir del
-            // mundo): tambien cuenta como punto valido para recomprometer la escala -sin esto,
-            // apagar y prender el modulo sin salir del mundo pareceria "no hacer nada" igual que
-            // cambiar el valor de escala solo, lo cual confunde (reportado por el usuario).
-            resetSession();
-        }
-        wasEnabled = true;
 
-        if (scaledTarget == null) {
-            // Recien ahora, al (re)crear el framebuffer, se lee el valor de config -queda
-            // "commiteado" para el resto de la sesion de mundo. Ver el resetSession() llamado al
-            // salir del mundo, que es lo unico que permite que un cambio de escala tenga efecto.
-            committedScale = ResScaleConfig.scale();
-        }
+        double scale = ResScaleConfig.scale();
 
-        if (committedScale == 1.0) {
+        if (scale == 1.0) {
             // Bypass: el mundo se dibuja directo sobre el mainRenderTarget real, sin swap.
             resetLodBias();
             activeScale = 1.0;
@@ -128,15 +98,15 @@ public final class ResScaleManager {
         }
 
         Window window = mc.getWindow();
-        int desiredWidth = scaleDim(window.getWidth(), committedScale);
-        int desiredHeight = scaleDim(window.getHeight(), committedScale);
+        int desiredWidth = scaleDim(window.getWidth(), scale);
+        int desiredHeight = scaleDim(window.getHeight(), scale);
 
         if (scaledTarget == null || scaledTarget.width != desiredWidth || scaledTarget.height != desiredHeight) {
-            // Reconstruir de cero (no resize()) ante cualquier cambio de tamaño -incluido un
-            // resize real de la ventana nativa, que con la escala commiteada sin cambiar igual
-            // puede pedir un tamaño de pixeles distinto. MainTarget tiene su propia logica de
-            // asignacion con fallback (allocateAttachments/Dimension.listWithFallback, confirmado
-            // por decompile) que solo corre en el constructor; resize() la saltea.
+            // Reconstruir de cero (no resize()) ante cualquier cambio de tamaño -sea porque el
+            // usuario cambio el valor de escala, o porque la ventana nativa se redimensiono.
+            // MainTarget tiene su propia logica de asignacion con fallback
+            // (allocateAttachments/Dimension.listWithFallback, confirmado por decompile) que solo
+            // corre en el constructor; resize() la saltea.
             if (scaledTarget != null) {
                 scaledTarget.destroyBuffers();
             }
@@ -155,10 +125,10 @@ public final class ResScaleManager {
             }
         }
 
-        activeScale = committedScale;
+        activeScale = scale;
         syncOutlineChain(mc);
 
-        applyLodBias(committedScale);
+        applyLodBias(scale);
 
         realTarget = mc.getMainRenderTarget();
         accessor.ck7infinite$setMainRenderTarget(scaledTarget);
@@ -215,13 +185,17 @@ public final class ResScaleManager {
      * bindear nada, sin mixinear Sodium/Embeddium, que samplean esa misma textura de vanilla.
      */
     private static void applyLodBias(double scale) {
-        if (lodBiasApplied) {
+        // Con la escala en vivo (no commiteada), un cambio de valor en config tiene que re-emitir
+        // el bias en el mismo frame -no alcanza con el flag de "ya aplicado alguna vez", si no un
+        // cambio de 0.5 a 0.25 sin pasar por un bypass intermedio dejaria el bias viejo pegado.
+        if (lodBiasApplied && lastBiasScale == scale) {
             return;
         }
         float bias = (float) (0.5 * (Math.log(scale) / Math.log(2.0)));
         int textureId = Minecraft.getInstance().getTextureManager().getTexture(TextureAtlas.LOCATION_BLOCKS).getId();
         GL45.glTextureParameterf(textureId, GL14.GL_TEXTURE_LOD_BIAS, bias);
         lodBiasApplied = true;
+        lastBiasScale = scale;
     }
 
     private static void resetLodBias() {
@@ -234,10 +208,10 @@ public final class ResScaleManager {
     }
 
     /**
-     * Llamado al salir de un mundo (ClientPlayerNetworkEvent.LoggingOut). Es la UNICA forma en que
-     * un cambio de escala hecho en la config mientras se jugaba tiene efecto: se libera el
-     * framebuffer actual, y la proxima vez que se entra a un mundo beginWorldPass() lo reconstruye
-     * de cero leyendo el valor de config vigente en ese momento.
+     * Llamado al salir de un mundo (ClientPlayerNetworkEvent.LoggingOut). Ya no hace falta para que
+     * un cambio de escala tenga efecto (eso ahora se aplica solo, en vivo, ver javadoc de la
+     * clase) -esto es solo limpieza de memoria de GPU: libera el framebuffer mientras no hay mundo
+     * cargado, en vez de dejarlo reservado sin uso hasta la proxima vez que entre a un mundo.
      */
     public static void resetSession() {
         if (scaledTarget != null) {
@@ -290,13 +264,8 @@ public final class ResScaleManager {
         return worldPassActive;
     }
 
-    /** Usado por WindowMixin. Devuelve la escala COMMITEADA (ver clase), no el valor de config en vivo. */
+    /** Usado por WindowMixin/PostChainMixin: la escala EFECTIVA del world pass de este frame (1.0 en cualquier bypass). */
     public static double appliedScale() {
-        return committedScale;
-    }
-
-    /** Usado por PostChainMixin: la escala EFECTIVA del world pass de este frame (1.0 en cualquier bypass). */
-    public static double appliedScaleForPostChain() {
         return activeScale;
     }
 

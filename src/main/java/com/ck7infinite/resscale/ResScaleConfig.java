@@ -35,7 +35,8 @@ public final class ResScaleConfig {
                     "Escala del mundo 3D. 1.0 = resolucion nativa (sin efecto). Menos de 1.0 renderiza",
                     "a menor resolucion y estira a pantalla completa (mas pixelado, mejor rendimiento).",
                     "Mas de 1.0 renderiza a mayor resolucion (supersampling/SSAA, mas nitido, peor",
-                    "rendimiento). Solo cambia al guardar la config, nunca durante el juego."
+                    "rendimiento). Se aplica al instante al guardar, sin reiniciar ni volver a entrar",
+                    "al mundo."
             )
             .defineInRange("scale", 1.0, 0.25, 2.0);
 

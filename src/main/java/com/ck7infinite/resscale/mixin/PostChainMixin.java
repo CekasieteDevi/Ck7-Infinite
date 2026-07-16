@@ -34,7 +34,7 @@ public abstract class PostChainMixin {
         if (!name.equals("minecraft:shaders/post/entity_outline.json")) {
             return 1.0;
         }
-        return 1.0 / ResScaleManager.appliedScaleForPostChain();
+        return 1.0 / ResScaleManager.appliedScale();
     }
 
     @Redirect(
@@ -49,7 +49,7 @@ public abstract class PostChainMixin {
         // scaleDim (truncacion), no la division/redondeo de antes -tiene que dar EXACTAMENTE el
         // mismo numero que ResScaleManager#syncOutlineChain para el mismo ancho/alto nativo, si
         // no el chequeo de sync ahi oscila y fuerza un resize todos los frames con dims impares.
-        double scale = ResScaleManager.appliedScaleForPostChain();
+        double scale = ResScaleManager.appliedScale();
         instance.resize(ResScaleManager.scaleDim(width, scale), ResScaleManager.scaleDim(height, scale), clearError);
     }
 

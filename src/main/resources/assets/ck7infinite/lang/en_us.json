@@ -4,6 +4,7 @@
   "ck7infinite.config.category.mobfreeze": "Mob AI Freeze",
   "ck7infinite.config.category.villagerthrottle": "Villager Throttling",
   "ck7infinite.config.category.particlepriority": "Particle Priority",
+  "ck7infinite.config.category.resscale": "Escala de Resolución",
 
   "ck7infinite.config.general.enabled": "Enable Ck7 - Conatus",
   "ck7infinite.config.general.enabled.tooltip": "Master switch: turns OFF the entire mod at once (all 4 modules), no need to go\nmodule by module. For a module to work, BOTH are required: this switch AND\nthat module's own 'Enabled' toggle, further down this screen.",
@@ -109,6 +110,13 @@
   "ck7infinite.config.particlepriority.redstone_ids.tooltip": "IDs (path, no namespace) classified as redstone.",
 
 
+  "ck7infinite.config.resscale.enabled": "Enabled",
+  "ck7infinite.config.resscale.enabled.tooltip": "Renders the 3D world at a reduced resolution and stretches it to full screen.\nDefault off: new module, only enable it after trying it with your real setup.",
+  "ck7infinite.config.resscale.scale": "Scale",
+  "ck7infinite.config.resscale.scale.tooltip": "1.0 = native resolution (no effect). Below 1.0 = more pixelated, better\nperformance. Above 1.0 = sharper (supersampling), worse performance.\nA value change only takes effect on entering a world, or by turning the\n'Enabled' toggle above off and back on -changing it while the module\nstays on has no effect until one of those two.",
+  "ck7infinite.config.resscale.linear_filter": "Linear filter when stretching",
+  "ck7infinite.config.resscale.linear_filter.tooltip": "Enabled = smooth (light FXAA-like). Disabled = nearest neighbor\n(sharper/pixelated).",
+  "ck7infinite.config.resscale.pending_restart": "[Ck7 - Conatus] You saved a Scale change, but it hasn't applied yet: turn 'Enabled' off and back on in the Escala de Resolucion category, or leave and rejoin the world.",
 
   "ck7infinite.sodiumwarning.chat": "[Ck7 - Conatus] Detected Sodium or Embeddium: on integrated graphics the 'Use Fog Occlusion' option can misbehave (chunks not drawn until you walk on top of them). Disabling it is recommended: Options > Video Settings > Embeddium/Sodium tab > Performance > Use Fog Occlusion. (You can turn off this notice in Mods > Ck7 - Conatus > Config)."
 }

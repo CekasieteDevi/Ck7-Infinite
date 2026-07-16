@@ -3,6 +3,7 @@ package com.ck7infinite.config;
 import com.ck7infinite.Ck7MasterConfig;
 import com.ck7infinite.mobfreeze.MobFreezeConfig;
 import com.ck7infinite.particlepriority.ParticlePriorityConfig;
+import com.ck7infinite.resscale.ResScaleConfig;
 import com.ck7infinite.ultraload.UltraLoadConfig;
 import com.ck7infinite.villagerthrottle.VillagerThrottleConfig;
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
@@ -53,6 +54,7 @@ public final class Ck7ConfigScreen {
         buildMobFreeze(builder, eb);
         buildVillagerThrottle(builder, eb);
         buildParticlePriority(builder, eb);
+        buildResScale(builder, eb);
 
         builder.setSavingRunnable(() -> {
             // SPEC.save() solo escribe el archivo a disco; NO dispara ModConfigEvent.Reloading
@@ -69,6 +71,8 @@ public final class Ck7ConfigScreen {
             VillagerThrottleConfig.refresh();
             ParticlePriorityConfig.SPEC.save();
             ParticlePriorityConfig.refresh();
+            ResScaleConfig.SPEC.save();
+            ResScaleConfig.refresh();
             com.ck7infinite.sodiumwarning.SodiumWarningConfig.SPEC.save();
         });
 
@@ -196,6 +200,16 @@ public final class Ck7ConfigScreen {
         addList(c, eb, "ck7infinite.config.particlepriority.redstone_ids", ParticlePriorityConfig.REDSTONE_PARTICLE_IDS,
                 List.of("dust", "dust_color_transition", "dust_pillar"),
                 "ck7infinite.config.particlepriority.redstone_ids.tooltip");
+    }
+
+    private static void buildResScale(ConfigBuilder b, ConfigEntryBuilder eb) {
+        ConfigCategory c = b.getOrCreateCategory(Component.translatable("ck7infinite.config.category.resscale"));
+        addBool(c, eb, "ck7infinite.config.resscale.enabled", ResScaleConfig.ENABLED, false,
+                "ck7infinite.config.resscale.enabled.tooltip");
+        addDouble(c, eb, "ck7infinite.config.resscale.scale", ResScaleConfig.SCALE, 1.0, 0.25, 2.0,
+                "ck7infinite.config.resscale.scale.tooltip");
+        addBool(c, eb, "ck7infinite.config.resscale.linear_filter", ResScaleConfig.LINEAR_FILTER, true,
+                "ck7infinite.config.resscale.linear_filter.tooltip");
     }
 
     // ---- helpers ----

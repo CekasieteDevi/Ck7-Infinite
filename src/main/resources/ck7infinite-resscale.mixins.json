@@ -1,0 +1,17 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.ck7infinite.resscale.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "refmap": "ck7infinite.refmap.json",
+  "client": [
+    "MinecraftAccessorMixin",
+    "WindowMixin",
+    "GameRendererMixin",
+    "RenderTargetMixin",
+    "PostChainMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

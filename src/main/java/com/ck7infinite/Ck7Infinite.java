@@ -4,6 +4,7 @@ import com.ck7infinite.mobfreeze.MobFreezeConfig;
 import com.ck7infinite.mobfreeze.MobFreezeTickHandler;
 import com.ck7infinite.mobfreeze.MobFreezeTracker;
 import com.ck7infinite.particlepriority.ParticlePriorityConfig;
+import com.ck7infinite.resscale.ResScaleConfig;
 import com.ck7infinite.ultraload.UltraLoadConfig;
 import com.ck7infinite.ultraload.UltraLoadServerHandler;
 import com.ck7infinite.villagerthrottle.VillagerInteractHandler;
@@ -52,6 +53,11 @@ public class Ck7Infinite {
         // (ver ParticlePriorityClientSetup); esta linea es segura en dedicated server porque
         // ParticlePriorityConfig no referencia ninguna clase de net.minecraft.client.
         context.registerConfig(ModConfig.Type.CLIENT, ParticlePriorityConfig.SPEC, MODID + "-particlepriority.toml");
+
+        // Modulo 7: Escala de Resolucion. Config CLIENT (decision puramente visual/local, igual
+        // que Particulas por Prioridad). Los mixins solo tocan clases de render del cliente
+        // fisico (ver ck7infinite-resscale.mixins.json, array "client").
+        context.registerConfig(ModConfig.Type.CLIENT, ResScaleConfig.SPEC, MODID + "-resscale.toml");
 
         // Modulo 6: Ultra Carga (modo panico durante carga de chunks). Config COMMON. El detector
         // y los efectos de servidor van en el handler; los de cliente (render de entidades) se

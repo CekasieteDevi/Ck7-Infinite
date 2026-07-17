@@ -113,6 +113,20 @@ está planteado), hooks públicos de render modded.
 
 ---
 
+## F. Ideas propias (fuera del PDF, verificadas contra el ecosistema actual)
+
+El PDF no es la única fuente posible; busqué qué falta *de verdad* hoy en el ecosistema 1.20.1 antes
+de proponer nada, para no duplicar mods que el usuario ya podría tener instalados.
+
+| Idea | Estado de investigación | Veredicto |
+|---|---|---|
+| **Sound Priority** (módulo nuevo, mismo patrón que Particle Priority: categorías, radio, cap de instancias concurrentes, dedupe de sonidos idénticos disparados en el mismo tick — ej. una horda de zombies gimiendo a la vez) | Busqué mods de "sound culling/priority" para Forge 1.20.1 — no encontré nada equivalente, solo un mod llamado "Sounds" que es config de recursos, no de performance. | **Gap real, candidato fuerte.** El esqueleto ya existe: `ParticlePriorityConfig`/`ParticleClassifier` es un template directo (categorías + radios + contexto reciente) que se puede portar a `OpenAL`/sound engine con cambios acotados. |
+| **Cap nativo del thread pool de worldgen/chunk background** (`Util.backgroundExecutor()` en vanilla usa `cpuCount - 1` clamped a 7 según la documentación pública de un agente Java externo que hace justamente esto) | Confirmé que el problema es real y documentado (`saharNooby/minecraft-thread-pool-agent`, un **Java agent externo**, no un mod), y que en CPUs de 4 núcleos/8 hilos el pool default satura el sistema (14 threads entre los dos pools de worldgen). No encontré ningún **mod Forge** que resuelva esto nativamente — hoy la única solución pública es ese agente externo (flag de lanzamiento `-javaagent`), que es justo la fricción que un mod evita. | **Gap real y diferenciado**, pero necesita una prueba de concepto antes de comprometerlo al roadmap: hay que verificar en nuestro propio entorno de dev si `Util`'s pool estático se inicializa antes o después de que nuestro mod pueda actuar (system property `max.bg.threads` seteada por nosotros, o Mixin sobre el cálculo del tamaño). Si el timing no da, esto no es viable sin un coremod/servicio de carga temprana. |
+| **Generalizar Ultra Load en una máquina de estados con múltiples disparadores** (hoy solo dispara por carga de chunks; agregar AFK/inactividad y TPS sostenido bajo como disparadores adicionales que reusen exactamente los mismos tiers/efectos/`safeRadiusBlocks`) | Busqué "AFK detection reduce tick rate" — **ya existen varios mods** (Tick Tweaks, FPS Optimizer, AFKStatus) que hacen throttling por inactividad de forma standalone. | El AFK-throttling *standalone* está cubierto, no vale la pena rehacerlo. Pero ninguno de esos mods comparte la sofisticación de nuestro sistema de tiers + radio seguro por jugador. La idea con valor real es la **refactorización arquitectónica**: que `UltraLoadServerHandler` acepte disparadores plugables (carga de chunks, AFK, TPS bajo) en vez de tener el chequeo de chunk-rate hardcodeado, para que el "Adaptive Simulation Distance" de la Fase 1 y un futuro trigger de AFK reusen la misma máquina de tiers en lugar de triplicar lógica. Es más una decisión de diseño para cuando lleguemos a esos ítems que un módulo nuevo en sí. |
+| ~~Hopper/container tick throttling~~ | Busqué explícitamente — **ya resuelto** por varios mods maduros y populares (Fast Hoppers, Hopper X-Treme, TickAccelerate). | **Descartado.** No hay gap; si el usuario quiere esto, instala uno de esos. Vale la pena sumarlo a la lista de compatibilidad testeada en vez de reimplementarlo. |
+
+---
+
 ## Protocolo de test de FPS (a definir en detalle antes del ítem #1)
 
 Por cada feature: mismo mundo/seed, mismo punto de spawn, misma carga de mobs/chunks, medición

@@ -1,5 +1,7 @@
 package com.ck7infinite.ultraload;
 
+import com.ck7infinite.ultraload.trigger.ChunkLoadTrigger;
+import com.ck7infinite.ultraload.trigger.UltraLoadTrigger;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.level.GameRules;
@@ -10,23 +12,25 @@ import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.server.ServerLifecycleHooks;
 
+import java.util.List;
+
 /**
  * Detector y efectos de servidor de Ultra Carga.
  * <p>
- * Cuenta los ChunkEvent.Load del lado servidor en una ventana movil de ~1s (20 ticks); si superan
- * el umbral, activa Ultra Carga y arranca un cooldown. Al activarse/desactivarse maneja los
- * efectos de servidor: pausar random ticks (gamerule randomTickSpeed) y cancelar spawns naturales.
- * El freeze de mobs lo aplica MobFreezeTickHandler leyendo UltraLoadState; los efectos de cliente
+ * El nivel agregado es el maximo entre todos los disparadores plugables (ver
+ * com.ck7infinite.ultraload.trigger); hoy el unico es ChunkLoadTrigger (ritmo de carga de chunks),
+ * asi que el nivel solo toma 0 o 1 -futuros disparadores (TPS sostenido bajo, AFK) se suman a
+ * `triggers` sin tocar esta maquina de estados-. Al activarse/desactivarse maneja los efectos de
+ * servidor: pausar random ticks (gamerule randomTickSpeed) y cancelar spawns naturales. El freeze
+ * de mobs lo aplica MobFreezeTickHandler leyendo UltraLoadState; los efectos de cliente
  * (particulas, render de entidades) los aplican el mixin de particulas y UltraLoadClientHandler.
  */
 public final class UltraLoadServerHandler {
 
-    // Ventana movil de cargas de chunk por tick (20 ticks ~= 1 segundo a 20 TPS).
-    private final int[] loadsRing = new int[20];
-    private int ringIndex;
-    private int loadsThisTick;
-    private int cooldownRemaining;
-    private boolean currentlyActive;
+    private final ChunkLoadTrigger chunkLoadTrigger = new ChunkLoadTrigger();
+    private final List<UltraLoadTrigger> triggers = List.of(chunkLoadTrigger);
+
+    private int currentLevel;
 
     // Valor original de randomTickSpeed guardado mientras lo tenemos en 0. null = no lo tocamos.
     private Integer savedRandomTick;
@@ -34,7 +38,7 @@ public final class UltraLoadServerHandler {
     @SubscribeEvent
     public void onChunkLoad(ChunkEvent.Load event) {
         if (event.getLevel() != null && !event.getLevel().isClientSide()) {
-            loadsThisTick++;
+            chunkLoadTrigger.onChunkLoad();
         }
     }
 
@@ -49,36 +53,21 @@ public final class UltraLoadServerHandler {
         }
 
         if (!UltraLoadConfig.isEnabled()) {
-            if (currentlyActive) {
+            triggers.forEach(UltraLoadTrigger::reset);
+            if (currentLevel > 0) {
                 deactivate(server);
             }
-            loadsThisTick = 0;
             return;
         }
 
-        loadsRing[ringIndex] = loadsThisTick;
-        ringIndex = (ringIndex + 1) % loadsRing.length;
-        loadsThisTick = 0;
-
-        int windowSum = 0;
-        for (int v : loadsRing) {
-            windowSum += v;
+        int newLevel = 0;
+        for (UltraLoadTrigger trigger : triggers) {
+            newLevel = Math.max(newLevel, trigger.desiredLevel(server));
         }
 
-        boolean shouldBeActive;
-        if (windowSum >= UltraLoadConfig.activationChunksPerSecond()) {
-            cooldownRemaining = UltraLoadConfig.cooldownTicks();
-            shouldBeActive = true;
-        } else if (cooldownRemaining > 0) {
-            cooldownRemaining--;
-            shouldBeActive = true;
-        } else {
-            shouldBeActive = false;
-        }
-
-        if (shouldBeActive != currentlyActive) {
-            if (shouldBeActive) {
-                activate(server);
+        if (newLevel != currentLevel) {
+            if (newLevel > 0) {
+                activate(server, newLevel);
             } else {
                 deactivate(server);
             }
@@ -100,19 +89,19 @@ public final class UltraLoadServerHandler {
     public void onServerStopping(ServerStoppingEvent event) {
         // Nunca dejar randomTickSpeed en 0 persistido en el save.
         restoreRandomTicks(event.getServer());
-        currentlyActive = false;
-        UltraLoadState.setActive(false);
+        currentLevel = 0;
+        UltraLoadState.setLevel(0);
     }
 
-    private void activate(MinecraftServer server) {
-        currentlyActive = true;
-        UltraLoadState.setActive(true);
+    private void activate(MinecraftServer server, int level) {
+        currentLevel = level;
+        UltraLoadState.setLevel(level);
         pauseRandomTicks(server);
     }
 
     private void deactivate(MinecraftServer server) {
-        currentlyActive = false;
-        UltraLoadState.setActive(false);
+        currentLevel = 0;
+        UltraLoadState.setLevel(0);
         restoreRandomTicks(server);
     }
 

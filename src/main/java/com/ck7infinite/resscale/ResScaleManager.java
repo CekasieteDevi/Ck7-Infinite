@@ -6,7 +6,9 @@ import com.mojang.blaze3d.pipeline.MainTarget;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.platform.Window;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.fml.ModList;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL14;
@@ -54,6 +56,26 @@ public final class ResScaleManager {
     private static boolean worldPassActive = false;
     private static boolean lodBiasApplied = false;
     private static float lastAppliedBias = Float.NaN;
+
+    /**
+     * Todos los atlas stitcheados reales del juego (verificado por javap sobre el jar mapeado de
+     * Forge -TextureAtlas solo expone LOCATION_BLOCKS/LOCATION_PARTICLES como ResourceLocation
+     * publicos; el resto vive en Sheets). Las texturas de entidades/mobs quedan afuera a proposito:
+     * no son un atlas, son PNGs individuales bindeados dinamicamente por mob -extenderles el bias
+     * es una feature aparte, mas grande, no este bug fix (ver V2_ROADMAP.md seccion G.2).
+     */
+    private static final ResourceLocation[] MIP_BIAS_ATLASES = {
+            TextureAtlas.LOCATION_BLOCKS,
+            TextureAtlas.LOCATION_PARTICLES,
+            Sheets.BANNER_SHEET,
+            Sheets.SHIELD_SHEET,
+            Sheets.SIGN_SHEET,
+            Sheets.CHEST_SHEET,
+            Sheets.ARMOR_TRIMS_SHEET,
+            Sheets.SHULKER_SHEET,
+            Sheets.BED_SHEET,
+            Sheets.DECORATED_POT_SHEET,
+    };
 
     /**
      * Escala EFECTIVA del world pass de este frame: el valor de config cuando el swap esta activo,
@@ -195,8 +217,9 @@ public final class ResScaleManager {
      * viewport. Es la contrapartida exacta de (1): mientras (1) busca nitidez, (2) la sacrifica
      * a proposito por rendimiento.
      * <p>
-     * Ambas se aplican via Direct State Access sobre la textura COMPARTIDA del atlas de bloques
-     * -sin bindear nada, sin mixinear Sodium/Embeddium, que samplean esa misma textura de vanilla.
+     * Ambas se aplican via Direct State Access sobre TODOS los atlas stitcheados reales del juego
+     * (ver {@link #MIP_BIAS_ATLASES}) -sin bindear nada, sin mixinear Sodium/Embeddium, que
+     * samplean esas mismas texturas de vanilla.
      */
     private static void applyLodBias(double scale) {
         float compensationBias = scale == 1.0 ? 0f : (float) (0.5 * (Math.log(scale) / Math.log(2.0)));
@@ -210,8 +233,7 @@ public final class ResScaleManager {
         if (lodBiasApplied && lastAppliedBias == bias) {
             return;
         }
-        int textureId = Minecraft.getInstance().getTextureManager().getTexture(TextureAtlas.LOCATION_BLOCKS).getId();
-        GL45.glTextureParameterf(textureId, GL14.GL_TEXTURE_LOD_BIAS, bias);
+        writeLodBiasToAllAtlases(bias);
         lodBiasApplied = true;
         lastAppliedBias = bias;
     }
@@ -220,9 +242,15 @@ public final class ResScaleManager {
         if (!lodBiasApplied) {
             return;
         }
-        int textureId = Minecraft.getInstance().getTextureManager().getTexture(TextureAtlas.LOCATION_BLOCKS).getId();
-        GL45.glTextureParameterf(textureId, GL14.GL_TEXTURE_LOD_BIAS, 0.0f);
+        writeLodBiasToAllAtlases(0.0f);
         lodBiasApplied = false;
+    }
+
+    private static void writeLodBiasToAllAtlases(float bias) {
+        for (ResourceLocation atlas : MIP_BIAS_ATLASES) {
+            int textureId = Minecraft.getInstance().getTextureManager().getTexture(atlas).getId();
+            GL45.glTextureParameterf(textureId, GL14.GL_TEXTURE_LOD_BIAS, bias);
+        }
     }
 
     /**

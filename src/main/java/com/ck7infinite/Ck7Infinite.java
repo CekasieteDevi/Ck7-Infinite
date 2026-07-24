@@ -65,6 +65,13 @@ public class Ck7Infinite {
         context.registerConfig(ModConfig.Type.COMMON, UltraLoadConfig.SPEC, MODID + "-ultraload.toml");
         MinecraftForge.EVENT_BUS.register(new UltraLoadServerHandler());
 
+        // Modulo 8: Adaptive Simulation Distance. Config COMMON, server-only (misma razon que
+        // Ultra Carga). Lee UltraLoadState (Fase 0) para saltear la evaluacion durante rafagas
+        // reales de carga de chunks -ver SimDistanceHandler/SimDistanceConfig para el porque.
+        context.registerConfig(ModConfig.Type.COMMON, com.ck7infinite.simdistance.SimDistanceConfig.SPEC,
+                MODID + "-simdistance.toml");
+        MinecraftForge.EVENT_BUS.register(new com.ck7infinite.simdistance.SimDistanceHandler());
+
         // Aviso de Sodium/Embeddium: config CLIENT minima (solo guarda "no volver a mostrar").
         // El handler que muestra la pantalla se registra aparte, solo en cliente, via
         // SodiumWarningClientSetup (@EventBusSubscriber con Dist.CLIENT).

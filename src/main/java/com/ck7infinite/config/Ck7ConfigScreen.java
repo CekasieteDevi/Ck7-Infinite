@@ -4,6 +4,7 @@ import com.ck7infinite.Ck7MasterConfig;
 import com.ck7infinite.mobfreeze.MobFreezeConfig;
 import com.ck7infinite.particlepriority.ParticlePriorityConfig;
 import com.ck7infinite.resscale.ResScaleConfig;
+import com.ck7infinite.simdistance.SimDistanceConfig;
 import com.ck7infinite.ultraload.UltraLoadConfig;
 import com.ck7infinite.villagerthrottle.VillagerThrottleConfig;
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
@@ -55,6 +56,7 @@ public final class Ck7ConfigScreen {
         buildVillagerThrottle(builder, eb);
         buildParticlePriority(builder, eb);
         buildResScale(builder, eb);
+        buildSimDistance(builder, eb);
 
         builder.setSavingRunnable(() -> {
             // SPEC.save() solo escribe el archivo a disco; NO dispara ModConfigEvent.Reloading
@@ -73,6 +75,8 @@ public final class Ck7ConfigScreen {
             ParticlePriorityConfig.refresh();
             ResScaleConfig.SPEC.save();
             ResScaleConfig.refresh();
+            SimDistanceConfig.SPEC.save();
+            SimDistanceConfig.refresh();
             com.ck7infinite.sodiumwarning.SodiumWarningConfig.SPEC.save();
         });
 
@@ -229,6 +233,22 @@ public final class Ck7ConfigScreen {
         addBool(c, eb, "ck7infinite.config.resscale.renderscale_warning_dismissed",
                 ResScaleConfig.RENDERSCALE_WARNING_DISMISSED, false,
                 "ck7infinite.config.resscale.renderscale_warning_dismissed.tooltip");
+    }
+
+    private static void buildSimDistance(ConfigBuilder b, ConfigEntryBuilder eb) {
+        ConfigCategory c = b.getOrCreateCategory(Component.translatable("ck7infinite.config.category.simdistance"));
+        addBool(c, eb, "ck7infinite.config.simdistance.enabled", SimDistanceConfig.ENABLED, false,
+                "ck7infinite.config.simdistance.enabled.tooltip");
+        addInt(c, eb, "ck7infinite.config.simdistance.min_simulation_distance", SimDistanceConfig.MIN_SIMULATION_DISTANCE, 5, 2, 32,
+                "ck7infinite.config.simdistance.min_simulation_distance.tooltip");
+        addDouble(c, eb, "ck7infinite.config.simdistance.high_tick_millis", SimDistanceConfig.HIGH_TICK_MILLIS, 45.0, 10.0, 500.0,
+                "ck7infinite.config.simdistance.high_tick_millis.tooltip");
+        addDouble(c, eb, "ck7infinite.config.simdistance.low_tick_millis", SimDistanceConfig.LOW_TICK_MILLIS, 35.0, 5.0, 500.0,
+                "ck7infinite.config.simdistance.low_tick_millis.tooltip");
+        addInt(c, eb, "ck7infinite.config.simdistance.eval_interval", SimDistanceConfig.EVALUATION_INTERVAL_TICKS, 20, 1, 200,
+                "ck7infinite.config.simdistance.eval_interval.tooltip");
+        addInt(c, eb, "ck7infinite.config.simdistance.growth_cooldown", SimDistanceConfig.GROWTH_COOLDOWN_TICKS, 100, 0, 1200,
+                "ck7infinite.config.simdistance.growth_cooldown.tooltip");
     }
 
     // ---- helpers ----

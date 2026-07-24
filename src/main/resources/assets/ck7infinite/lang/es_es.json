@@ -5,6 +5,7 @@
   "ck7infinite.config.category.villagerthrottle": "Villager Throttling",
   "ck7infinite.config.category.particlepriority": "Particle Priority",
   "ck7infinite.config.category.resscale": "Escala de Resolución",
+  "ck7infinite.config.category.simdistance": "Distancia de Simulación Adaptativa",
 
   "ck7infinite.config.general.enabled": "Activar Ck7 - Conatus",
   "ck7infinite.config.general.enabled.tooltip": "Interruptor general: apaga TODO el mod de una (los 4 modulos), sin tener que ir\nmodulo por modulo. Para que un modulo funcione hacen falta AMBOS: este interruptor\ny el 'Activado' propio de ese modulo, mas abajo en esta pantalla.",
@@ -135,5 +136,18 @@
 
   "ck7infinite.resscale.renderscale_conflict.chat": "[Ck7 - Conatus] Detectamos el mod RenderScale instalado junto a Escala de Resolucion: los dos hacen swap del render target por su cuenta, sin coordinarse, asi que tenerlos activos a la vez con una escala distinta de 1.0 rompe el frame. Sacá RenderScale o dejalo en escala 1.0 mientras uses este modulo. (Podes apagar este aviso en Mods > Ck7 - Conatus > Config > Escala de Resolucion)",
 
-  "ck7infinite.sodiumwarning.chat": "[Ck7 - Conatus] Detectamos Sodium o Embeddium: en placas de video integradas la opcion 'Use Fog Occlusion' puede fallar (chunks que no se dibujan hasta que caminas encima). Se recomienda desactivarla: Opciones > Video > pestana Embeddium/Sodium > Performance > Use Fog Occlusion. (Podes apagar este aviso en Mods > Ck7 - Conatus > Config)."
+  "ck7infinite.sodiumwarning.chat": "[Ck7 - Conatus] Detectamos Sodium o Embeddium: en placas de video integradas la opcion 'Use Fog Occlusion' puede fallar (chunks que no se dibujan hasta que caminas encima). Se recomienda desactivarla: Opciones > Video > pestana Embeddium/Sodium > Performance > Use Fog Occlusion. (Podes apagar este aviso en Mods > Ck7 - Conatus > Config).",
+
+  "ck7infinite.config.simdistance.enabled": "Activado",
+  "ck7infinite.config.simdistance.enabled.tooltip": "Activa el modulo. Default false: un intento anterior de este\nmecanismo resulto contraproducente en un pack real por no distinguir\ngeneracion de mundo de carga de simulacion real. Probalo en tu\nconfiguracion antes de activarlo.",
+  "ck7infinite.config.simdistance.min_simulation_distance": "Simulation distance minima (chunks)",
+  "ck7infinite.config.simdistance.min_simulation_distance.tooltip": "Piso de simulation distance bajo carga sostenida. El techo es\nsiempre tu valor configurado de servidor/mundo.",
+  "ck7infinite.config.simdistance.high_tick_millis": "Umbral de tick alto (ms)",
+  "ck7infinite.config.simdistance.high_tick_millis.tooltip": "Si la MEDIANA del tick time de los ultimos ~100 ticks (5s) supera\neste valor, la simulation distance baja un chunk por evaluacion.",
+  "ck7infinite.config.simdistance.low_tick_millis": "Umbral de tick bajo (ms)",
+  "ck7infinite.config.simdistance.low_tick_millis.tooltip": "Si la mediana de tick time baja de este valor, la simulation\ndistance sube un chunk por evaluacion (hasta el techo), una vez\npasado el cooldown. La franja entre este valor y el umbral alto es\nzona muerta que evita oscilar.",
+  "ck7infinite.config.simdistance.eval_interval": "Intervalo de evaluacion (ticks)",
+  "ck7infinite.config.simdistance.eval_interval.tooltip": "Cada cuanto se reevalua y se mueve la simulation distance a lo sumo\nun chunk.",
+  "ck7infinite.config.simdistance.growth_cooldown": "Cooldown de crecimiento (ticks)",
+  "ck7infinite.config.simdistance.growth_cooldown.tooltip": "Ticks a esperar tras un recorte antes de permitir que la simulation\ndistance vuelva a crecer. Rompe el ciclo recortar->descargar->crecer->\nregenerar->recortar que provoca oscilacion."
 }

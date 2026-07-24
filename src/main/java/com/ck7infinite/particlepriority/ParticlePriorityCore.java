@@ -7,7 +7,28 @@ package com.ck7infinite.particlepriority;
  */
 final class ParticlePriorityCore {
 
+    /** Tope al peso de una sola particula contra el presupuesto de cobertura -sin esto, una
+     * particula pegada a la camara (distSq -> 0) monopolizaria el presupuesto entero. */
+    private static final double MAX_WEIGHT_PER_PARTICLE = 4.0;
+
     private ParticlePriorityCore() {
+    }
+
+    /**
+     * Estima el peso de cobertura de pantalla de una particula relativo a una a
+     * referenceDistanceBlocks (esa distancia pesa 1.0). Ley de cuadrado inverso: el area aparente
+     * de un objeto de tamaño fijo cae con distancia^2, asi que refDistSq/distSq es la razon de
+     * cobertura esperada sin necesitar el tamaño real de la particula (que no se conoce en el
+     * punto donde se decide esto -antes de crear el objeto Particle-).
+     */
+    static double coverageWeight(double distSq, double referenceDistanceBlocks) {
+        double refDistSq = referenceDistanceBlocks * referenceDistanceBlocks;
+        double flooredDistSq = Math.max(distSq, 1.0);
+        return Math.min(refDistSq / flooredDistSq, MAX_WEIGHT_PER_PARTICLE);
+    }
+
+    static boolean fitsInCoverageBudget(double weight, double budgetUsed, double budgetMax) {
+        return budgetUsed + weight <= budgetMax;
     }
 
     static ParticleDecision evaluate(

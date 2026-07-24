@@ -191,6 +191,12 @@ public final class Ck7ConfigScreen {
                 "ck7infinite.config.particlepriority.context_radius.tooltip");
         addInt(c, eb, "ck7infinite.config.particlepriority.context_recency", ParticlePriorityConfig.CONTEXT_RECENCY_TICKS, 40, 0, 1200,
                 "ck7infinite.config.particlepriority.context_recency.tooltip");
+        addBool(c, eb, "ck7infinite.config.particlepriority.ambient_coverage_budget_enabled",
+                ParticlePriorityConfig.AMBIENT_COVERAGE_BUDGET_ENABLED, true,
+                "ck7infinite.config.particlepriority.ambient_coverage_budget_enabled.tooltip");
+        addDouble(c, eb, "ck7infinite.config.particlepriority.ambient_coverage_budget",
+                ParticlePriorityConfig.AMBIENT_COVERAGE_BUDGET, 30.0, 1.0, 500.0,
+                "ck7infinite.config.particlepriority.ambient_coverage_budget.tooltip");
         addList(c, eb, "ck7infinite.config.particlepriority.combat_ids", ParticlePriorityConfig.COMBAT_PARTICLE_IDS,
                 List.of("crit", "enchanted_hit", "sweep_attack", "damage_indicator"),
                 "ck7infinite.config.particlepriority.combat_ids.tooltip");

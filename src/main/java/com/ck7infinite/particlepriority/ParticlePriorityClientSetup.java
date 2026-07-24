@@ -21,5 +21,6 @@ public final class ParticlePriorityClientSetup {
     @SubscribeEvent
     public static void onClientSetup(FMLClientSetupEvent event) {
         MinecraftForge.EVENT_BUS.register(new PlayerActionContext());
+        MinecraftForge.EVENT_BUS.register(new ParticleCoverageBudget());
     }
 }

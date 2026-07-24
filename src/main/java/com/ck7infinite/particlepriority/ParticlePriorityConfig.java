@@ -75,6 +75,25 @@ public final class ParticlePriorityConfig {
             .comment("Cuantos ticks despues de una accion del jugador sigue aplicando el bonus de contexto.")
             .defineInRange("contextRecencyTicks", 40, 0, 1200);
 
+    public static final ForgeConfigSpec.BooleanValue AMBIENT_COVERAGE_BUDGET_ENABLED = BUILDER
+            .comment(
+                    "Cap de particulas AMBIENT por presupuesto de cobertura de pantalla estimada",
+                    "(no por conteo plano): una particula muy cerca de la camara pesa mas contra el",
+                    "presupuesto que una lejana. Solo afecta particulas ambientales que ya pasaron el",
+                    "filtro de distancia/cono de arriba y no estan ligadas a tu ultima accion",
+                    "(romper/colocar/atacar) -esas siguen siendo prioridad maxima."
+            )
+            .define("ambientCoverageBudgetEnabled", true);
+
+    public static final ForgeConfigSpec.DoubleValue AMBIENT_COVERAGE_BUDGET = BUILDER
+            .comment(
+                    "Presupuesto de cobertura por frame, en unidades de 'particulas equivalentes a",
+                    "la distancia de ambientCloseRadiusBlocks'. Una particula a esa distancia cuesta",
+                    "~1.0; mas cerca cuesta mas (hasta 4x), mas lejos cuesta menos. Solo aplica si",
+                    "ambientCoverageBudgetEnabled=true."
+            )
+            .defineInRange("ambientCoverageBudget", 30.0, 1.0, 500.0);
+
     public static final ForgeConfigSpec.ConfigValue<List<? extends String>> COMBAT_PARTICLE_IDS = BUILDER
             .comment("IDs (path, sin namespace) de ParticleType clasificados como combate.")
             .defineListAllowEmpty(
@@ -110,6 +129,8 @@ public final class ParticlePriorityConfig {
     private static volatile double viewConeDotThreshold;
     private static volatile double contextRadiusBlocks;
     private static volatile int contextRecencyTicks;
+    private static volatile boolean ambientCoverageBudgetEnabled;
+    private static volatile double ambientCoverageBudget;
     private static volatile Set<String> combatParticleIds = Set.of();
     private static volatile Set<String> interactionParticleIds = Set.of();
     private static volatile Set<String> redstoneParticleIds = Set.of();
@@ -141,6 +162,8 @@ public final class ParticlePriorityConfig {
         viewConeDotThreshold = VIEW_CONE_DOT_THRESHOLD.get();
         contextRadiusBlocks = CONTEXT_RADIUS.get();
         contextRecencyTicks = CONTEXT_RECENCY_TICKS.get();
+        ambientCoverageBudgetEnabled = AMBIENT_COVERAGE_BUDGET_ENABLED.get();
+        ambientCoverageBudget = AMBIENT_COVERAGE_BUDGET.get();
         combatParticleIds = Set.copyOf(COMBAT_PARTICLE_IDS.get());
         interactionParticleIds = Set.copyOf(INTERACTION_PARTICLE_IDS.get());
         redstoneParticleIds = Set.copyOf(REDSTONE_PARTICLE_IDS.get());
@@ -181,6 +204,14 @@ public final class ParticlePriorityConfig {
 
     public static int contextRecencyTicks() {
         return contextRecencyTicks;
+    }
+
+    public static boolean ambientCoverageBudgetEnabled() {
+        return ambientCoverageBudgetEnabled;
+    }
+
+    public static double ambientCoverageBudget() {
+        return ambientCoverageBudget;
     }
 
     public static Set<String> combatParticleIds() {

@@ -24,13 +24,30 @@ public final class ParticlePriorityManager {
         Vec3 camPos = camera.getPosition();
         Vector3f look = camera.getLookVector();
 
-        return ParticlePriorityCore.evaluate(
+        ParticleDecision decision = ParticlePriorityCore.evaluate(
                 category, recentlyRelevant,
                 x, y, z,
                 camPos.x, camPos.y, camPos.z,
                 look.x, look.y, look.z,
                 radius, ParticlePriorityConfig.ambientCloseRadiusBlocks(), ParticlePriorityConfig.viewConeDotThreshold()
         );
+
+        // Presupuesto de cobertura (V2_ROADMAP.md seccion G.1): solo gatea particulas AMBIENT que
+        // ya pasaron el filtro de arriba y no estan ligadas a la ultima accion del jugador -esas
+        // siguen siendo prioridad maxima, igual que hoy-. COMBAT/INTERACTION/REDSTONE no se tocan.
+        if (decision == ParticleDecision.FORCE_ACCEPT
+                && category == ParticleCategory.AMBIENT
+                && !recentlyRelevant
+                && ParticlePriorityConfig.ambientCoverageBudgetEnabled()) {
+            double distSq = camPos.distanceToSqr(x, y, z);
+            double weight = ParticlePriorityCore.coverageWeight(distSq, ParticlePriorityConfig.ambientCloseRadiusBlocks());
+            if (!ParticlePriorityCore.fitsInCoverageBudget(weight, ParticleCoverageBudget.used(), ParticlePriorityConfig.ambientCoverageBudget())) {
+                return ParticleDecision.REJECT;
+            }
+            ParticleCoverageBudget.add(weight);
+        }
+
+        return decision;
     }
 
     private static double radiusFor(ParticleCategory category) {

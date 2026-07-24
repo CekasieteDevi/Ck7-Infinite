@@ -53,7 +53,7 @@ public final class ResScaleManager {
     private static RenderTarget realTarget;
     private static boolean worldPassActive = false;
     private static boolean lodBiasApplied = false;
-    private static double lastBiasScale = Double.NaN;
+    private static float lastAppliedBias = Float.NaN;
 
     /**
      * Escala EFECTIVA del world pass de este frame: el valor de config cuando el swap esta activo,
@@ -76,24 +76,29 @@ public final class ResScaleManager {
             return;
         }
 
-        double scale = ResScaleConfig.scale();
-
-        if (scale == 1.0) {
-            // Bypass: el mundo se dibuja directo sobre el mainRenderTarget real, sin swap.
+        if (isBypassedByShaderpackOrFabulous()) {
+            // Terreno no probado (shaders custom podrian no respetar el bias de mipmap de la
+            // misma forma que vanilla/Sodium/Embeddium): ni la compensacion ni Aggressive
+            // Mipmapping se aplican aca, mismo criterio cauteloso que ya regia para el swap.
             resetLodBias();
             activeScale = 1.0;
             syncOutlineChain(mc);
+            return;
+        }
+
+        double scale = ResScaleConfig.scale();
+
+        if (scale == 1.0) {
+            // Sin reduccion de viewport, pero Aggressive Mipmapping puede seguir aplicando: la
+            // compensacion de applyLodBias da 0 en scale=1.0, asi que esto es un no-op si
+            // Aggressive Mipmapping tambien esta apagado.
+            activeScale = 1.0;
+            syncOutlineChain(mc);
+            applyLodBias(1.0);
             return;
         }
 
         if (!(mc instanceof MinecraftAccessorMixin accessor)) {
-            return;
-        }
-
-        if (isBypassedByShaderpackOrFabulous()) {
-            resetLodBias();
-            activeScale = 1.0;
-            syncOutlineChain(mc);
             return;
         }
 
@@ -173,29 +178,42 @@ public final class ResScaleManager {
     }
 
     /**
-     * Compensa la seleccion automatica de mipmap de la GPU: con el viewport achicado, las
-     * derivadas de pantalla hacen que se elija un mip mas grueso/borroso del que corresponde al
-     * tamaño final en pantalla (despues del estirado). El sintoma es "el agua y las entidades se
-     * ven borrosas/planas, los bloques solidos cercanos apenas se notan" -ya diagnosticado y
+     * Combina DOS biases de mipmap independientes en una sola escritura GL (GL_TEXTURE_LOD_BIAS
+     * es un unico valor de sampler, no se puede aplicar dos veces):
+     * <p>
+     * 1) Compensacion (NEGATIVA): con el viewport achicado por resscale, las derivadas de
+     * pantalla hacen que la GPU elija un mip mas grueso/borroso del que corresponde al tamaño
+     * final en pantalla (despues del estirado). El sintoma es "el agua y las entidades se ven
+     * borrosas/planas, los bloques solidos cercanos apenas se notan" -ya diagnosticado y
      * arreglado una vez en el modulo viejo "Resolucion de Render Dinamica" (ver memoria del
-     * proyecto, v2.0.8), y reaparece aca porque este modulo es una reescritura desde cero que
-     * nunca heredo ese fix. Bias NEGATIVO a mitad de fuerza (0.5, no 1.0 completo -la fuerza
-     * completa arregla el mip pero mete shimmer/aliasing visible sin TAA que lo disimule)
-     * aplicado via Direct State Access sobre la textura COMPARTIDA del atlas de bloques -sin
-     * bindear nada, sin mixinear Sodium/Embeddium, que samplean esa misma textura de vanilla.
+     * proyecto, v2.0.8). Bias a mitad de fuerza (0.5, no 1.0 completo -la fuerza completa arregla
+     * el mip pero mete shimmer/aliasing visible sin TAA que lo disimule). Da 0 cuando scale=1.0.
+     * <p>
+     * 2) Aggressive Mipmapping (POSITIVA, opt-in): fuerza mips mas gruesos A PROPOSITO para
+     * ahorrar ancho de banda de textura -el eje correcto en una iGPU limitada por bandwidth/
+     * fillrate (ver V2_ROADMAP.md seccion G)-, independiente de si resscale esta reduciendo el
+     * viewport. Es la contrapartida exacta de (1): mientras (1) busca nitidez, (2) la sacrifica
+     * a proposito por rendimiento.
+     * <p>
+     * Ambas se aplican via Direct State Access sobre la textura COMPARTIDA del atlas de bloques
+     * -sin bindear nada, sin mixinear Sodium/Embeddium, que samplean esa misma textura de vanilla.
      */
     private static void applyLodBias(double scale) {
-        // Con la escala en vivo (no commiteada), un cambio de valor en config tiene que re-emitir
-        // el bias en el mismo frame -no alcanza con el flag de "ya aplicado alguna vez", si no un
-        // cambio de 0.5 a 0.25 sin pasar por un bypass intermedio dejaria el bias viejo pegado.
-        if (lodBiasApplied && lastBiasScale == scale) {
+        float compensationBias = scale == 1.0 ? 0f : (float) (0.5 * (Math.log(scale) / Math.log(2.0)));
+        float aggressiveBias = ResScaleConfig.aggressiveMipmapping() ? (float) ResScaleConfig.aggressiveMipmappingBias() : 0f;
+        float bias = compensationBias + aggressiveBias;
+
+        // Con los valores en vivo (no commiteados), un cambio en cualquiera de los dos config
+        // tiene que re-emitir el bias en el mismo frame -no alcanza con el flag de "ya aplicado
+        // alguna vez", si no un cambio de bias sin pasar por un bypass intermedio dejaria el
+        // valor viejo pegado.
+        if (lodBiasApplied && lastAppliedBias == bias) {
             return;
         }
-        float bias = (float) (0.5 * (Math.log(scale) / Math.log(2.0)));
         int textureId = Minecraft.getInstance().getTextureManager().getTexture(TextureAtlas.LOCATION_BLOCKS).getId();
         GL45.glTextureParameterf(textureId, GL14.GL_TEXTURE_LOD_BIAS, bias);
         lodBiasApplied = true;
-        lastBiasScale = scale;
+        lastAppliedBias = bias;
     }
 
     private static void resetLodBias() {

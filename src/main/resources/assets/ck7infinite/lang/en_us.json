@@ -116,6 +116,10 @@
   "ck7infinite.config.resscale.scale.tooltip": "1.0 = native resolution (no effect). Below 1.0 = more pixelated, better\nperformance. Above 1.0 = sharper (supersampling), worse performance.\nApplies instantly on save, no need to restart or rejoin the world.",
   "ck7infinite.config.resscale.linear_filter": "Linear filter when stretching",
   "ck7infinite.config.resscale.linear_filter.tooltip": "Enabled = smooth (light FXAA-like). Disabled = nearest neighbor\n(sharper/pixelated).",
+  "ck7infinite.config.resscale.aggressive_mipmapping": "Aggressive mipmapping",
+  "ck7infinite.config.resscale.aggressive_mipmapping.tooltip": "Forces coarser mip levels to reduce texture bandwidth, trading some\nsharpness at mid/long distance for performance. Unlike the render\nscale, this applies even at scale 1.0.",
+  "ck7infinite.config.resscale.aggressive_mipmapping_bias": "Aggressive mipmapping strength",
+  "ck7infinite.config.resscale.aggressive_mipmapping_bias.tooltip": "How strong the forced mip bias is. Higher = more bandwidth saved,\nblurrier textures at mid distance. Only applies if aggressive\nmipmapping is enabled.",
   "ck7infinite.config.resscale.renderscale_warning_dismissed": "Don't warn about RenderScale conflict",
   "ck7infinite.config.resscale.renderscale_warning_dismissed.tooltip": "If enabled, the chat warning about a conflict with the RenderScale\nmod won't be shown again when entering a world.",
 

@@ -116,6 +116,10 @@
   "ck7infinite.config.resscale.scale.tooltip": "1.0 = resolucao nativa (sem efeito). Abaixo de 1.0 = mais pixelado, melhor\ndesempenho. Acima de 1.0 = mais nitido (supersampling), pior desempenho.\nAplica na hora ao salvar, sem precisar reiniciar nem reentrar no mundo.",
   "ck7infinite.config.resscale.linear_filter": "Filtro linear ao esticar",
   "ck7infinite.config.resscale.linear_filter.tooltip": "Ativado = suave (estilo FXAA leve). Desativado = vizinho mais proximo\n(mais nitido/pixelado).",
+  "ck7infinite.config.resscale.aggressive_mipmapping": "Mipmapping agressivo",
+  "ck7infinite.config.resscale.aggressive_mipmapping.tooltip": "Forca mips mais grossos para reduzir a largura de banda de textura,\nem troca de alguma nitidez a media/longa distancia. Diferente da\nescala, isso se aplica mesmo com escala 1.0.",
+  "ck7infinite.config.resscale.aggressive_mipmapping_bias": "Intensidade do mipmapping agressivo",
+  "ck7infinite.config.resscale.aggressive_mipmapping_bias.tooltip": "Quao forte e o bias de mip forcado. Mais alto = mais economia de\nlargura de banda, texturas mais borradas a media distancia. So se\naplica se o mipmapping agressivo estiver ativado.",
   "ck7infinite.config.resscale.renderscale_warning_dismissed": "Nao avisar sobre conflito com RenderScale",
   "ck7infinite.config.resscale.renderscale_warning_dismissed.tooltip": "Se ativado, o aviso por chat sobre conflito com o mod RenderScale\nnao sera mostrado novamente ao entrar num mundo.",
 

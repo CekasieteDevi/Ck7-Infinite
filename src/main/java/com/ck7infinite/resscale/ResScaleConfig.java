@@ -51,11 +51,30 @@ public final class ResScaleConfig {
             .comment("Si esta en true, no se vuelve a mostrar el aviso de conflicto con el mod RenderScale.")
             .define("renderscaleWarningDismissed", false);
 
+    public static final ForgeConfigSpec.BooleanValue AGGRESSIVE_MIPMAPPING = BUILDER
+            .comment(
+                    "Fuerza mips mas gruesos (bias positivo) para reducir ancho de banda de textura,",
+                    "a cambio de algo de nitidez a media/larga distancia. A diferencia de la escala,",
+                    "aplica SIEMPRE que el modulo este habilitado, incluso con escala 1.0 -es una",
+                    "optimizacion de ancho de banda independiente de si se reduce el viewport."
+            )
+            .define("aggressiveMipmapping", false);
+
+    public static final ForgeConfigSpec.DoubleValue AGGRESSIVE_MIPMAPPING_BIAS = BUILDER
+            .comment(
+                    "Magnitud del bias positivo de mipmapping agresivo. Mas alto = mas ahorro de ancho",
+                    "de banda, pero texturas mas borrosas a media distancia. Solo aplica si",
+                    "aggressiveMipmapping=true."
+            )
+            .defineInRange("aggressiveMipmappingBias", 0.5, 0.0, 2.0);
+
     public static final ForgeConfigSpec SPEC = BUILDER.build();
 
     private static volatile boolean enabled;
     private static volatile double scale;
     private static volatile boolean linearFilter;
+    private static volatile boolean aggressiveMipmapping;
+    private static volatile double aggressiveMipmappingBias;
 
     private ResScaleConfig() {
     }
@@ -78,6 +97,8 @@ public final class ResScaleConfig {
         enabled = ENABLED.get();
         scale = SCALE.get();
         linearFilter = LINEAR_FILTER.get();
+        aggressiveMipmapping = AGGRESSIVE_MIPMAPPING.get();
+        aggressiveMipmappingBias = AGGRESSIVE_MIPMAPPING_BIAS.get();
     }
 
     public static boolean isEnabled() {
@@ -90,5 +111,13 @@ public final class ResScaleConfig {
 
     public static boolean linearFilter() {
         return linearFilter;
+    }
+
+    public static boolean aggressiveMipmapping() {
+        return aggressiveMipmapping;
+    }
+
+    public static double aggressiveMipmappingBias() {
+        return aggressiveMipmappingBias;
     }
 }

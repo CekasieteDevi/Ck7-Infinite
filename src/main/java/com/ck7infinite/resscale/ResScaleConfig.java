@@ -47,6 +47,10 @@ public final class ResScaleConfig {
             )
             .define("linearFilter", true);
 
+    public static final ForgeConfigSpec.BooleanValue RENDERSCALE_WARNING_DISMISSED = BUILDER
+            .comment("Si esta en true, no se vuelve a mostrar el aviso de conflicto con el mod RenderScale.")
+            .define("renderscaleWarningDismissed", false);
+
     public static final ForgeConfigSpec SPEC = BUILDER.build();
 
     private static volatile boolean enabled;

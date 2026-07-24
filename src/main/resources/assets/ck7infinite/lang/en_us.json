@@ -116,6 +116,10 @@
   "ck7infinite.config.resscale.scale.tooltip": "1.0 = native resolution (no effect). Below 1.0 = more pixelated, better\nperformance. Above 1.0 = sharper (supersampling), worse performance.\nApplies instantly on save, no need to restart or rejoin the world.",
   "ck7infinite.config.resscale.linear_filter": "Linear filter when stretching",
   "ck7infinite.config.resscale.linear_filter.tooltip": "Enabled = smooth (light FXAA-like). Disabled = nearest neighbor\n(sharper/pixelated).",
+  "ck7infinite.config.resscale.renderscale_warning_dismissed": "Don't warn about RenderScale conflict",
+  "ck7infinite.config.resscale.renderscale_warning_dismissed.tooltip": "If enabled, the chat warning about a conflict with the RenderScale\nmod won't be shown again when entering a world.",
+
+  "ck7infinite.resscale.renderscale_conflict.chat": "[Ck7 - Conatus] Detected the RenderScale mod installed alongside Escala de Resolucion: both swap the render target on their own, without coordinating, so having both active at once with a scale other than 1.0 breaks the frame. Remove RenderScale or leave it at scale 1.0 while using this module. (You can turn off this notice in Mods > Ck7 - Conatus > Config > Escala de Resolucion)",
 
   "ck7infinite.sodiumwarning.chat": "[Ck7 - Conatus] Detected Sodium or Embeddium: on integrated graphics the 'Use Fog Occlusion' option can misbehave (chunks not drawn until you walk on top of them). Disabling it is recommended: Options > Video Settings > Embeddium/Sodium tab > Performance > Use Fog Occlusion. (You can turn off this notice in Mods > Ck7 - Conatus > Config)."
 }

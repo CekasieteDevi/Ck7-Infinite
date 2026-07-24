@@ -210,6 +210,9 @@ public final class Ck7ConfigScreen {
                 "ck7infinite.config.resscale.scale.tooltip");
         addBool(c, eb, "ck7infinite.config.resscale.linear_filter", ResScaleConfig.LINEAR_FILTER, true,
                 "ck7infinite.config.resscale.linear_filter.tooltip");
+        addBool(c, eb, "ck7infinite.config.resscale.renderscale_warning_dismissed",
+                ResScaleConfig.RENDERSCALE_WARNING_DISMISSED, false,
+                "ck7infinite.config.resscale.renderscale_warning_dismissed.tooltip");
     }
 
     // ---- helpers ----

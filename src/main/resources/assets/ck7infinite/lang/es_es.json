@@ -11,6 +11,8 @@
   "ck7infinite.config.general.enabled.tooltip": "Interruptor general: apaga TODO el mod de una (los 4 modulos), sin tener que ir\nmodulo por modulo. Para que un modulo funcione hacen falta AMBOS: este interruptor\ny el 'Activado' propio de ese modulo, mas abajo en esta pantalla.",
   "ck7infinite.config.general.sodium_warning_dismissed": "No avisar sobre Sodium/Embeddium",
   "ck7infinite.config.general.sodium_warning_dismissed.tooltip": "Si esta activo, no se vuelve a mostrar por chat el aviso de 'Use Fog Occlusion'\nal entrar a un mundo con Sodium o Embeddium instalado.",
+  "ck7infinite.config.general.potato_profile_dismissed": "No sugerir perfil Potato PC",
+  "ck7infinite.config.general.potato_profile_dismissed.tooltip": "Si esta activo, no se vuelve a sugerir el perfil Potato PC al entrar a\nun mundo con graficos integrados detectados.",
 
   "ck7infinite.config.ultraload.enabled": "Activado",
   "ck7infinite.config.ultraload.enabled.tooltip": "Modo panico: cuando se cargan/generan chunks fuerte, apaga temporalmente todo lo\nque no ayuda a que aparezcan (IA, spawns, particulas, render de entidades) para\nliberar CPU y GPU. Todo se restaura al bajar la carga.",
@@ -137,6 +139,10 @@
   "ck7infinite.resscale.renderscale_conflict.chat": "[Ck7 - Conatus] Detectamos el mod RenderScale instalado junto a Escala de Resolucion: los dos hacen swap del render target por su cuenta, sin coordinarse, asi que tenerlos activos a la vez con una escala distinta de 1.0 rompe el frame. Sacá RenderScale o dejalo en escala 1.0 mientras uses este modulo. (Podes apagar este aviso en Mods > Ck7 - Conatus > Config > Escala de Resolucion)",
 
   "ck7infinite.sodiumwarning.chat": "[Ck7 - Conatus] Detectamos Sodium o Embeddium: en placas de video integradas la opcion 'Use Fog Occlusion' puede fallar (chunks que no se dibujan hasta que caminas encima). Se recomienda desactivarla: Opciones > Video > pestana Embeddium/Sodium > Performance > Use Fog Occlusion. (Podes apagar este aviso en Mods > Ck7 - Conatus > Config).",
+  "ck7infinite.potatoprofile.chat": "[Ck7 - Conatus] Detectamos graficos integrados: activar Escala de Resolucion a 0.75 con Mipmapping Agresivo es el cambio de mayor impacto para tu hardware. Cliqueá aca para aplicarlo ahora: %s (Podes apagar este aviso en Mods > Ck7 - Conatus > Config)",
+  "ck7infinite.potatoprofile.chat.apply_link": "[Aplicar perfil Potato PC]",
+  "ck7infinite.potatoprofile.command.applied": "[Ck7 - Conatus] Perfil Potato PC aplicado: Escala de Resolucion activada a 0.75 con Mipmapping Agresivo.",
+  "ck7infinite.potatoprofile.command.dismissed": "[Ck7 - Conatus] Sugerencia de perfil Potato PC descartada.",
 
   "ck7infinite.config.simdistance.enabled": "Activado",
   "ck7infinite.config.simdistance.enabled.tooltip": "Activa el modulo. Default false: un intento anterior de este\nmecanismo resulto contraproducente en un pack real por no distinguir\ngeneracion de mundo de carga de simulacion real. Probalo en tu\nconfiguracion antes de activarlo.",

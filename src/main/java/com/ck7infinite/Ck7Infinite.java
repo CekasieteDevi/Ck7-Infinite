@@ -78,6 +78,12 @@ public class Ck7Infinite {
         context.registerConfig(ModConfig.Type.CLIENT, com.ck7infinite.sodiumwarning.SodiumWarningConfig.SPEC,
                 MODID + "-sodiumwarning.toml");
 
+        // Fase 3 del roadmap V2: sugerencia de perfil "Potato PC" por chat (nunca auto-aplicada).
+        // Config CLIENT minima (solo "no volver a sugerir"); el handler/comando se registran solo
+        // en cliente via PotatoProfileClientSetup.
+        context.registerConfig(ModConfig.Type.CLIENT, com.ck7infinite.potatoprofile.PotatoProfileConfig.SPEC,
+                MODID + "-potatoprofile.toml");
+
         // Pantalla de configuracion in-game (Mods -> Ck7 - Conatus -> Config), solo en el cliente
         // fisico y solo si Cloth Config esta presente. La clase Ck7ConfigScreen importa Cloth
         // Config y clases de cliente, asi que solo se carga cuando ambos gates se cumplen (si no

@@ -78,6 +78,7 @@ public final class Ck7ConfigScreen {
             SimDistanceConfig.SPEC.save();
             SimDistanceConfig.refresh();
             com.ck7infinite.sodiumwarning.SodiumWarningConfig.SPEC.save();
+            com.ck7infinite.potatoprofile.PotatoProfileConfig.SPEC.save();
         });
 
         return builder.build();
@@ -90,6 +91,9 @@ public final class Ck7ConfigScreen {
         addBool(c, eb, "ck7infinite.config.general.sodium_warning_dismissed",
                 com.ck7infinite.sodiumwarning.SodiumWarningConfig.DISMISSED, false,
                 "ck7infinite.config.general.sodium_warning_dismissed.tooltip");
+        addBool(c, eb, "ck7infinite.config.general.potato_profile_dismissed",
+                com.ck7infinite.potatoprofile.PotatoProfileConfig.DISMISSED, false,
+                "ck7infinite.config.general.potato_profile_dismissed.tooltip");
     }
 
     private static void buildUltraLoad(ConfigBuilder b, ConfigEntryBuilder eb) {

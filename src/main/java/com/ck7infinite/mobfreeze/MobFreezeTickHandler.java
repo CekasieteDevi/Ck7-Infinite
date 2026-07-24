@@ -62,6 +62,10 @@ public final class MobFreezeTickHandler {
         double safeRadius = UltraLoadConfig.safeRadiusBlocks();
         double safeRadiusSq = safeRadius * safeRadius;
 
+        boolean aiLodEnabled = MobFreezeConfig.aiLodEnabled();
+        double aiLodCloseRadius = Math.min(MobFreezeConfig.aiLodCloseRadiusBlocks(), radius);
+        double aiLodCloseRadiusSq = aiLodCloseRadius * aiLodCloseRadius;
+
         for (Map.Entry<ServerLevel, Set<Mob>> entry : MobFreezeTracker.trackedByLevel().entrySet()) {
             ServerLevel level = entry.getKey();
             Iterator<Mob> iterator = entry.getValue().iterator();
@@ -70,6 +74,7 @@ public final class MobFreezeTickHandler {
                 if (!mob.isAlive() || mob.level() != level) {
                     iterator.remove();
                     FreezeState.clear(mob);
+                    AiLodState.clear(mob);
                     continue;
                 }
                 if (SpawnGraceTracker.isInGracePeriod(mob, level.getGameTime(), graceTicks)) {
@@ -77,7 +82,17 @@ public final class MobFreezeTickHandler {
                 }
                 boolean forceUltraFreeze = ultraEnabled && !isWithinRadiusOfAnyPlayer(level, mob, safeRadiusSq);
                 boolean hasPlayer = hasActivatingPlayer(level, mob, radiusSq, alwaysActiveSq, requireLos);
-                FreezeState.apply(mob, forceUltraFreeze || !hasPlayer);
+                boolean shouldFreeze = forceUltraFreeze || !hasPlayer;
+                FreezeState.apply(mob, shouldFreeze);
+
+                // Entity AI LOD: banda intermedia entre "activo a ritmo completo" y "congelado" -ver
+                // MobAiLodMixin. Se llama incondicionalmente (no solo cuando shouldLod=true) para
+                // que se limpie solo si el mob se acerca o el sub-toggle se apaga, sin necesitar
+                // una bandera "wasEnabled" propia (a diferencia del toggle maestro del modulo, que
+                // SI la necesita porque cuando el modulo entero se apaga este loop deja de correr).
+                boolean shouldLod = aiLodEnabled && !shouldFreeze
+                        && !isWithinRadiusOfAnyPlayer(level, mob, aiLodCloseRadiusSq);
+                AiLodState.apply(mob, shouldLod);
             }
         }
     }
@@ -86,6 +101,7 @@ public final class MobFreezeTickHandler {
         for (Set<Mob> mobs : MobFreezeTracker.trackedByLevel().values()) {
             for (Mob mob : mobs) {
                 FreezeState.apply(mob, false);
+                AiLodState.apply(mob, false);
             }
         }
     }

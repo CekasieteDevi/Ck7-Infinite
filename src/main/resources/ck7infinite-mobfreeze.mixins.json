@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.ck7infinite.mobfreeze.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "refmap": "ck7infinite.refmap.json",
+  "mixins": [
+    "MobAiLodMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

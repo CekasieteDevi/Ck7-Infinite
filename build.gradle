@@ -21,6 +21,7 @@ mixin {
     config "ck7infinite-particlepriority.mixins.json"
     config "ck7infinite-ultraload.mixins.json"
     config "ck7infinite-resscale.mixins.json"
+    config "ck7infinite-mobfreeze.mixins.json"
 }
 
 version = mod_version

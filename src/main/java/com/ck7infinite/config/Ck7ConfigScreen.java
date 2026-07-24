@@ -144,6 +144,12 @@ public final class Ck7ConfigScreen {
                 "ck7infinite.config.mobfreeze.eval_interval.tooltip");
         addInt(c, eb, "ck7infinite.config.mobfreeze.spawn_grace", MobFreezeConfig.SPAWN_GRACE_TICKS, 60, 0, 1200,
                 "ck7infinite.config.mobfreeze.spawn_grace.tooltip");
+        addBool(c, eb, "ck7infinite.config.mobfreeze.ai_lod_enabled", MobFreezeConfig.AI_LOD_ENABLED, true,
+                "ck7infinite.config.mobfreeze.ai_lod_enabled.tooltip");
+        addDouble(c, eb, "ck7infinite.config.mobfreeze.ai_lod_close_radius", MobFreezeConfig.AI_LOD_CLOSE_RADIUS, 24.0, 0.0, 1024.0,
+                "ck7infinite.config.mobfreeze.ai_lod_close_radius.tooltip");
+        addInt(c, eb, "ck7infinite.config.mobfreeze.ai_lod_divisor", MobFreezeConfig.AI_LOD_DIVISOR, 8, 2, 40,
+                "ck7infinite.config.mobfreeze.ai_lod_divisor.tooltip");
         addBool(c, eb, "ck7infinite.config.mobfreeze.require_hostile", MobFreezeConfig.REQUIRE_HOSTILE, false,
                 "ck7infinite.config.mobfreeze.require_hostile.tooltip");
         addList(c, eb, "ck7infinite.config.mobfreeze.type_whitelist", MobFreezeConfig.ENTITY_TYPE_WHITELIST, List.of(),

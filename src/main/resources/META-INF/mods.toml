@@ -12,6 +12,9 @@ issueTrackerURL="https://github.com/CekasieteDevi/ck7-infinite/issues" #optional
 [[mixins]]
     config="ck7infinite-resscale.mixins.json"
 
+[[mixins]]
+    config="ck7infinite-mobfreeze.mixins.json"
+
 [[mods]] #mandatory
 modId="${mod_id}" #mandatory
 version="${mod_version}" #mandatory

@@ -73,6 +73,33 @@ public final class MobFreezeConfig {
             )
             .defineInRange("spawnGraceTicks", 60, 0, 1200);
 
+    public static final ForgeConfigSpec.BooleanValue AI_LOD_ENABLED = BUILDER
+            .comment(
+                    "Entity AI LOD: para mobs activos (no congelados) fuera de aiLodCloseRadiusBlocks",
+                    "pero dentro de freezeRadiusBlocks, reduce la frecuencia con la que se reevalua",
+                    "que goal deberia estar corriendo (mismo mecanismo que vanilla ya usa para",
+                    "escalonar el costo de IA entre mobs, solo mas agresivo). Movimiento, pathfinding",
+                    "y mira NUNCA se saltean -solo la reevaluacion de goals."
+            )
+            .define("aiLodEnabled", true);
+
+    public static final ForgeConfigSpec.DoubleValue AI_LOD_CLOSE_RADIUS = BUILDER
+            .comment(
+                    "Radio (en bloques) alrededor de CADA jugador donde los mobs activos mantienen el",
+                    "ritmo de IA completo de vanilla (sin reduccion). Mas alla de este radio (y hasta",
+                    "freezeRadiusBlocks) se aplica aiLodDivisor. Se recorta a freezeRadiusBlocks."
+            )
+            .defineInRange("aiLodCloseRadiusBlocks", 24.0, 0.0, 1024.0);
+
+    public static final ForgeConfigSpec.IntValue AI_LOD_DIVISOR = BUILDER
+            .comment(
+                    "Cada cuantos ticks se reevalua que goal deberia correr para un mob en la banda",
+                    "media (fuera de aiLodCloseRadiusBlocks). Vanilla usa 2; valores mas altos",
+                    "reevaluan con menos frecuencia (menos CPU, reaccion a cambios de contexto mas",
+                    "lenta). Solo aplica si aiLodEnabled=true."
+            )
+            .defineInRange("aiLodDivisor", 8, 2, 40);
+
     public static final ForgeConfigSpec.BooleanValue REQUIRE_HOSTILE = BUILDER
             .comment(
                     "Si es true, solo se gestionan mobs que implementan la interfaz vanilla 'Enemy'",
@@ -122,6 +149,9 @@ public final class MobFreezeConfig {
     private static volatile double alwaysActiveRadiusBlocks;
     private static volatile int evaluationIntervalTicks;
     private static volatile int spawnGraceTicks;
+    private static volatile boolean aiLodEnabled;
+    private static volatile double aiLodCloseRadiusBlocks;
+    private static volatile int aiLodDivisor;
     private static volatile boolean requireHostile;
     private static volatile Set<String> entityTypeWhitelist = Set.of();
     private static volatile Set<String> entityTypeBlacklist = Set.of();
@@ -161,6 +191,9 @@ public final class MobFreezeConfig {
         alwaysActiveRadiusBlocks = ALWAYS_ACTIVE_RADIUS.get();
         evaluationIntervalTicks = EVALUATION_INTERVAL_TICKS.get();
         spawnGraceTicks = SPAWN_GRACE_TICKS.get();
+        aiLodEnabled = AI_LOD_ENABLED.get();
+        aiLodCloseRadiusBlocks = AI_LOD_CLOSE_RADIUS.get();
+        aiLodDivisor = AI_LOD_DIVISOR.get();
         requireHostile = REQUIRE_HOSTILE.get();
         entityTypeWhitelist = Set.copyOf(ENTITY_TYPE_WHITELIST.get());
         entityTypeBlacklist = Set.copyOf(ENTITY_TYPE_BLACKLIST.get());
@@ -191,6 +224,18 @@ public final class MobFreezeConfig {
 
     public static int spawnGraceTicks() {
         return spawnGraceTicks;
+    }
+
+    public static boolean aiLodEnabled() {
+        return aiLodEnabled;
+    }
+
+    public static double aiLodCloseRadiusBlocks() {
+        return aiLodCloseRadiusBlocks;
+    }
+
+    public static int aiLodDivisor() {
+        return aiLodDivisor;
     }
 
     public static boolean requireHostile() {

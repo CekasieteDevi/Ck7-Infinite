@@ -67,6 +67,24 @@ Anotá y respetá siempre:
   chunks entran en pantalla.
 - **Render distance** fija.
 
+### Punto de medición ya escaneado (mundo de dev `New World`)
+
+Verificado por teleport real (fuerza generación de chunk, no solo lectura de heightmap): el area
+cercana al spawn de `New World` es selva/río densa -no sirve para "vista abierta"-, y el terreno
+mas alla de ~150 bloques del spawn no esta generado. Escaneando hacia el este se encontro una zona
+de **plains** solida (confirmada en un radio de ~100 bloques):
+
+```
+Mundo:        New World
+Coordenadas:  X=1357  Y=72  Z=51
+Facing:       north   (el oceano empieza ~50 bloques al SUR -Z creciente-, mirar al norte lo evita)
+Bioma:        minecraft:plains
+Confirmado:   plains solido en X=[1307,1407], Z=[-49,51] -mas alla de Z=101 hacia el sur es oceano-
+```
+
+Usar este punto para escenarios de "vista abierta" (Escala de Resolución, Aggressive Mipmapping)
+en vez de explorar a ciegas -evita perder tiempo de sesión buscando un lugar seco cada vez-.
+
 ---
 
 ## 3. Escenarios según qué se está probando
@@ -169,6 +187,36 @@ Muestra FPS, 1% lows, TPS y MSPT en pantalla, sin abrir F3. **Es la herramienta 
 
 ---
 
+## 6.1. Método rápido (dev-only, SOLO para features de servidor) — no reemplaza el protocolo completo
+
+Para un primer vistazo rápido de features de servidor/tick (Entity AI LOD, Adaptive Simulation
+Distance, Ultra Carga, Villager Throttle) se puede medir MSPT con `/spark tps` **dentro del
+entorno de desarrollo** (`gradlew runClient`), sin necesitar una instancia de launcher real -a
+diferencia de resscale/partículas (ver trampa #1), que SÍ requieren una instancia real siempre-.
+Sirve para una primera impresión rápida (minutos, no una sesión de laptop completa), **nunca
+para reportar un número final**.
+
+Cómo se hizo (y qué falló) la primera vez que se probó este método en este proyecto:
+
+1. Cargar la escena (spawnear entities, configurar el escenario) en una sola sesión de cliente dev.
+2. Esperar un asentamiento largo antes de la primera medición -**20 segundos no alcanzó** (ver
+   trampa #6); probar con 30-60s si se puede.
+3. Alternar la feature con `Config.VALOR.set(x); Config.refresh();` en vez de reiniciar el proceso
+   -mas rapido, pero comparte el mismo JIT/asentamiento entre condiciones, lo que ES la limitación.
+4. Correr `/spark tps` (da mediana, 95%ile y máximo de tick duration de los últimos 10s/1m) despues
+   de cada cambio, con al menos 6s de espera desde el cambio de config.
+5. Orden ABBA (no ABAB) igual que el protocolo completo, y **calculá la varianza DENTRO de cada
+   condición repetida** (comparando las dos mediciones "A" entre sí, y las dos "B" entre sí) antes
+   de confiar en la diferencia ENTRE condiciones. Si esa varianza interna es comparable a la
+   diferencia externa, el resultado es "dirección probable, magnitud no confirmada" -reportalo
+   así, no como un porcentaje limpio-.
+
+**Cuándo escalar al protocolo completo (sección 1-5):** si necesitás un número para decidir algo
+importante (ship/no ship, comparar contra otro mod, poner en la descripción de CurseForge), o si
+el método rápido no logra una diferencia mayor al doble de su propio ruido interno.
+
+---
+
 ## 7. Planilla de registro
 
 Copiá esto por cada feature probada:
@@ -231,6 +279,24 @@ gané 15 FPS" no dice cuál de las tres sirvió — ni si alguna estaba restando
 Casi todo lo de la Fase 1 cambia lo que se ve (mipmaps, partículas, resolución). Una feature que da
 +10 FPS y deja el agua borrosa no es una mejora: es un trade-off, y hay que decidirlo mirándolo, no
 mirando el número.
+
+**6. La deriva de "asentamiento" es más grande y dura más de lo que parece -aunque ya hayas
+esperado el warmup.** Midiendo Entity AI LOD y Adaptive Simulation Distance con `spark` dentro de
+una sola sesión (mismo proceso, alternando la feature con `set()`/`refresh()` en vez de reiniciar
+el juego): incluso con 20s de asentamiento antes de la primera medición y mediciones espaciadas 6s,
+el MSPT siguió bajando de forma monótona entre mediciones de la MISMA condición repetida (ej. dos
+mediciones seguidas con la feature prendida, sin tocar nada, dieron 8.6ms y despues 8.5ms -ok, casi
+igual-, pero en otra corrida 28.6ms y 24.3ms -¡16% de diferencia sin cambiar nada!-). La causa mas
+probable es una mezcla de JIT calentando y el pathing/IA de las entidades spawneadas
+estabilizandose, no bugs del feature. **Consecuencia practica: si la variación DENTRO de una misma
+condición (repetida sin cambiar nada) es del mismo orden que la diferencia ENTRE condiciones
+(prendido vs apagado), el resultado no es confiable -ni con orden ABBA-.** Esto le paso a los dos
+tests de rendimiento hechos así en este proyecto (ver commits de Entity AI LOD/Adaptive Simulation
+Distance): la dirección de la mejora fue consistente (~10-12%), pero no se pudo confirmar que la
+magnitud superara el ruido. La única forma real de resolverlo es la que ya pide el protocolo
+completo de este documento: **procesos separados por corrida** (mata el JIT-warmup compartido
+entre condiciones) y **más repeticiones** (mínimo 3 por condición, no 2) -ver sección 6.1 para una
+variante rapida de este mismo problema, explícitamente marcada como no-confiable-.
 
 ---
 
